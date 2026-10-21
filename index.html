@@ -481,6 +481,8 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <input id="s-cname" placeholder="예) 지수&민준" maxlength="16">
           <label class="lb">만난 날 (디데이)</label>
           <input type="date" id="s-anni">
+          <label class="lb">내 생일 (기념일 표시용)</label>
+          <input type="date" id="s-mybday">
           <label class="lb">파트너 생일 (기념일 표시용)</label>
           <input type="date" id="s-pbday">
           <button class="btn btn-sub" style="margin-top:14px" onclick="saveCouple()">커플 정보 저장</button>
@@ -731,7 +733,7 @@ function watchPartner(){
   if(!partnerUid)return;
   unsubs.push(db.collection('users').doc(partnerUid).onSnapshot(d=>{partnerDoc=d.exists?d.data():null;renderHeader();}));
 }
-function anniversariesOf(annStr, pbdayStr, fromStr){
+function anniversariesOf(annStr, pbdayStr, fromStr, mybdayStr){
   const ann=new Date(annStr+'T00:00:00');
   const from=new Date(fromStr+'T00:00:00');
   const out=[];
@@ -747,14 +749,15 @@ function anniversariesOf(annStr, pbdayStr, fromStr){
     if(ann.getMonth()===1&&ann.getDate()===29)d.setDate(28);
     add(d,y+'주년');
   }
-  // 파트너 생일 (매년 반복)
-  if(pbdayStr){
-    const pb=new Date(pbdayStr+'T00:00:00');
+  // 생일 (매년 반복) — 파트너 생일 + 내 생일
+  const bdays=[pbdayStr?{d:pbdayStr,lbl:'생일'}:null, mybdayStr?{d:mybdayStr,lbl:'내생일'}:null].filter(Boolean);
+  bdays.forEach(b=>{
+    const pb=new Date(b.d+'T00:00:00');
     for(let y=from.getFullYear()-1;y<=from.getFullYear()+1;y++){
       const d=new Date(pb);d.setFullYear(y);
-      add(d,'생일');
+      add(d,b.lbl);
     }
-  }
+  });
   out.sort((a,b)=>a.date-b.date);
   return out;
 }
@@ -773,11 +776,13 @@ function renderHeader(){
     $('h-emo').textContent=['💕','🥰','💞','💖'][days%4];
     // 다가오는 기념일 배지
     const today=toDateStr(new Date());
-    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today);
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today,me.uid===coupleDoc.members[0]?(partnerDoc&&partnerDoc.birthday||null):(userDoc&&userDoc.birthday||null));
     if(anns.length){
       const a=anns[0];
       const diff=Math.round((a.date-new Date(today+'T00:00:00'))/86400000);
-      const lbl=a.label==='생일'?(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim()+' 생일':'생일'):a.label;
+      let lbl=a.label;
+      if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim()+' 생일':'생일');
+      if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나')+' 생일';
       $('h-ann').style.display='inline-flex';
       $('h-ann').textContent=(a.label==='생일'?'🎂 ':'🎉 ')+lbl+' D-'+diff+' ('+fmtKDate(a.date)+')';
       $('h-ann').dataset.date=toDateStr(a.date);
@@ -793,6 +798,7 @@ function renderHeader(){
   $('s-cname').value=coupleDoc.name||'';
   $('s-anni').value=coupleDoc.anniversary||'';
   $('s-pbday').value=coupleDoc.partnerBirthday||'';
+  $('s-mybday').value=userDoc&&userDoc.birthday||'';
   $('s-code').textContent=userDoc?.inviteCode||'-';
   $('s-email').textContent=me.email||'-';
   $('s-partner').textContent=partnerDoc?.nickname||'-';
@@ -807,8 +813,10 @@ async function saveCouple(){
   await db.collection('couples').doc(coupleDoc.id).update({
     name:$('s-cname').value.trim()||null,
     anniversary:$('s-anni').value||null,
-    partnerBirthday:$('s-pbday').value||null
+    partnerBirthday:$('s-pbday').value||null,
+    myBirthday:$('s-mybday').value||null
   });
+  await db.collection('users').doc(me.uid).update({birthday:$('s-mybday').value||null}).catch(()=>{});
   toast('커플 정보를 저장했어요 💕');
 }
 async function unlinkCouple(){
@@ -999,7 +1007,7 @@ function renderCal(){
   let annByDay={};
   if(coupleDoc&&coupleDoc.anniversary){
     const first=new Date(calY,calM,1),last=new Date(calY,calM+1,0);
-    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,toDateStr(new Date(first-86400000*200)));
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,toDateStr(new Date(first-86400000*200)),coupleDoc.members[0]===me.uid?(partnerDoc&&partnerDoc.birthday||null):(userDoc&&userDoc.birthday||null));
     anns.forEach(a=>{const ds=toDateStr(a.date);if(a.date>=first&&a.date<=last){(annByDay[ds]=annByDay[ds]||[]).push(a);}});
   }
   let html='';
@@ -1015,8 +1023,10 @@ function renderCal(){
     if(hasEv){inner+='<div class="dot"></div><div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';}
     else if(hasAnn){
       const a=annByDay[ds][0];
-      const lbl=a.label==='생일'?((coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일'):a.label.replace('주년','주년').slice(0,4);
-      inner+='<div class="ann-dot"></div><div class="ann-lb">'+esc(lbl)+'</div>';
+      let lbl=a.label;
+      if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일';
+      if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
+      inner+='<div class="ann-dot"></div><div class="ann-lb">'+esc(lbl.slice(0,4))+'</div>';
     }
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')">'+inner+'</div>';
   }
