@@ -203,10 +203,11 @@ h2.sec .em{font-size:18px}
 }
 .cel.dim{color:#d8c9ce}
 .cel.today{background:#fff0f3;color:var(--pri-d);font-weight:900}
+.cel.evday{background:#ffe3e8;font-weight:700}
+.cel.evday.today{color:var(--pri-d)}
 .cel.sel{background:var(--pri);color:#fff;font-weight:900;box-shadow:0 3px 10px rgba(255,95,126,.4)}
 .cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px;position:absolute;bottom:5px}
 .cel.sel .dot{background:#fff}
-.cel .heart-mark{position:absolute;top:2px;right:3px;font-size:9px;line-height:1}
 .day-panel{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 .day-panel h3{font-size:15px;font-weight:900;margin-bottom:10px}
 .ev{display:flex;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid #f8eef0}
@@ -884,13 +885,16 @@ function renderCal(){
   const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
   const today=toDateStr(new Date());
   const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
+  const recByDay={};feedItems.forEach(r=>{(recByDay[r.date]=recByDay[r.date]||[]).push(r);});
   let html='';
   ['일','월','화','수','목','금','토'].forEach((d,i)=>html+='<div class="dow'+(i===0?' sun':i===6?' sat':'')+'">'+d+'</div>');
   for(let i=0;i<off;i++)html+='<div class="cel dim"></div>';
   for(let d=1;d<=dim;d++){
     const ds=calY+'-'+pad(calM+1)+'-'+pad(d);
     const cls='cel'+(ds===today?' today':'')+(ds===selDate?' sel':'');
-    html+='<div class="'+cls+'" onclick="pickDay(\''+ds+'\')">'+d+(selDate===today&&ds===today?'':'')+((evByDay[ds]||[]).length?'<span class="heart-mark">❤️</span><div class="dot"></div>':'')+'</div>';
+    const hasEv=(evByDay[ds]||[]).length>0, hasRec=(recByDay[ds]||[]).length>0;
+    let cls2=cls+(hasEv?' evday':'');
+    html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')">'+d+(hasRec?'<div class="dot"></div>':'')+'</div>';
   }
   $('cal-grid').innerHTML=html;
 }
