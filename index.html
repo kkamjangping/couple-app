@@ -313,6 +313,22 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .hidden{display:none!important}
+/* ═══════════════════════════ 댓글 ═══════════════════════════ */
+.cmt-list{margin-top:10px;border-top:1px solid #f8eef0;padding-top:8px;display:flex;flex-direction:column;gap:7px}
+.cmt{display:flex;align-items:flex-start;gap:7px}
+.cmt .rec-ava{width:22px;height:22px;font-size:10px;flex:none}
+.cmt .cb{flex:1;min-width:0}
+.cmt .cb b{font-size:12px}
+.cmt .cb .ct{font-size:13px;line-height:1.5;color:#5d4d54;word-break:keep-all}
+.cmt .cdel{border:none;background:none;color:#d49aa6;font-size:11px;cursor:pointer;font-family:inherit;padding:2px;flex:none}
+.cmt-form{display:flex;gap:6px;margin-top:8px}
+.cmt-form input{flex:1;padding:9px 12px;font-size:13.5px;border-radius:11px}
+.cmt-form button{border:none;background:var(--pri);color:#fff;border-radius:11px;padding:0 14px;font-size:13.5px;font-weight:700;cursor:pointer;flex:none;font-family:inherit}
+.cmt-btn{
+  margin-top:8px;border:1.5px solid var(--line);background:#fff;border-radius:30px;
+  padding:7px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--tx2);
+  margin-left:6px;font-weight:500;
+}
 </style>
 </head>
 <body>
@@ -962,6 +978,7 @@ function renderFeed(items){
     const mine=r.author===me.uid;
     const heartN=Object.keys(r.hearts||{}).length;
     const hearted=!!(r.hearts||{})[me.uid];
+    const cmtN=(r.comments||[]).length;
     let dateHead='';
     if(r.date!==lastDate){dateHead='<div style="text-align:center;margin:6px 0 2px;font-size:12px;color:var(--tx2);font-weight:700">'+fmtDate(r.date)+'</div>';lastDate=r.date;}
     return dateHead+'<div class="card rec">'
@@ -971,8 +988,39 @@ function renderFeed(items){
       +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
+      +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
+      +renderComments(r)
       +'</div>';
   }).join('');
+}
+function renderComments(r){
+  const list=(r.comments||[]);
+  const rows=list.map(c=>
+    '<div class="cmt"><div class="rec-ava">'+esc((c.name||'?')[0])+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b><div class="ct">'+esc(c.text||'')+'</div></div>'
+    +(c.uid===me.uid?'<button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button>':'')+'</div>'
+  ).join('');
+  return '<div class="cmt-list" id="cmts-'+r.id+'">'+rows+'</div>'
+    +'<div class="cmt-form"><input id="cin-'+r.id+'" placeholder="한마디 남기기…" maxlength="80" onkeydown="if(event.key===\'Enter\')addComment(\''+r.id+'\')">'
+    +'<button onclick="addComment(\''+r.id+'\')">등록</button></div>';
+}
+function focusComment(id){
+  const inp=document.getElementById('cin-'+id);
+  if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+async function addComment(id){
+  const inp=document.getElementById('cin-'+id);
+  const t=(inp&&inp.value||'').trim();
+  if(!t){toast('내용을 입력해 주세요');return;}
+  const cmt={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),uid:me.uid,name:me.displayName||userDoc.nickname||'나',text:t,ts:Date.now()};
+  await db.collection('couples').doc(coupleDoc.id).collection('records').doc(id)
+    .update({comments:firebase.firestore.FieldValue.arrayUnion(cmt)});
+}
+async function delComment(rid,cid){
+  const r=feedItems.find(x=>x.id===rid);if(!r)return;
+  const arr=(r.comments||[]).filter(c=>c.id!==cid);
+  await db.collection('couples').doc(coupleDoc.id).collection('records').doc(rid)
+    .update({comments:arr});
+  toast('삭제했어요');
 }
 async function toggleHeart(id){
   const r=feedItems.find(x=>x.id===id);if(!r)return;
@@ -1176,6 +1224,7 @@ function renderDay(){
   $('day-rec-list').innerHTML=recs.map(r=>{
     const heartN=Object.keys(r.hearts||{}).length;
     const hearted=!!(r.hearts||{})[me.uid];
+    const cmtN=(r.comments||[]).length;
     return '<div style="padding:10px 2px;border-bottom:1px solid #f8eef0">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
@@ -1183,6 +1232,8 @@ function renderDay(){
       +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
+      +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
+      +renderComments(r)
       +'</div>';
   }).join('');
 }
