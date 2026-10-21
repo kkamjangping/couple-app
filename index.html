@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff6b81">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>우리 · 커플 앱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --pri:#ff6b81; --pri-d:#e8556d; --pri-s:#ffe3e8;
+  --bg1:#fff0f2; --bg2:#fff8f0; --card:#ffffff;
+  --tx:#3a2e33; --tx2:#9a8b91; --line:#f3e4e8;
+  --ok:#4cc38a; --warn:#f5a623;
+  --shadow:0 8px 28px rgba(255,107,129,.13);
+  --r:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
+  color:var(--tx); letter-spacing:-.02em;
+  overflow-x:hidden;
+}
+#shell{max-width:520px;margin:0 auto;min-height:100%;position:relative;padding-bottom:92px}
+.view{display:none;animation:fadein .25s ease}
+.view.on{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- 공통 ---------- */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  border:none;border-radius:14px;padding:15px 18px;font-size:16px;font-weight:700;
+  font-family:inherit;cursor:pointer;transition:transform .12s,opacity .12s;letter-spacing:-.02em;
+}
+.btn:active{transform:scale(.97)}
+.btn-pri{background:linear-gradient(135deg,#ff7a8c,#ff5f7e);color:#fff;box-shadow:0 6px 18px rgba(255,95,126,.35)}
+.btn-sub{background:var(--pri-s);color:var(--pri-d)}
+.btn-ghost{background:#f6eef0;color:#7c6d73}
+.btn-danger{background:#fdecef;color:#e0455e}
+.btn:disabled{opacity:.5;pointer-events:none}
+input,textarea,select{
+  width:100%;border:1.5px solid var(--line);border-radius:13px;padding:13px 14px;
+  font-size:15px;font-family:inherit;color:var(--tx);background:#fffafa;outline:none;
+  transition:border .15s;letter-spacing:-.02em;
+}
+input:focus,textarea:focus{border-color:var(--pri)}
+textarea{resize:vertical;min-height:90px}
+label.lb{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
+.label-first{margin-top:0!important}
+.tiny{font-size:12px;color:var(--tx2);line-height:1.6}
+.err{color:#e0455e;font-size:13px;margin-top:10px;display:none;font-weight:500}
+.err.show{display:block}
+
+/* ---------- 세팅(연결) 화면 ---------- */
+#view-setup{padding:34px 20px}
+.setup-logo{text-align:center;margin-bottom:22px}
+.setup-logo .heart{font-size:46px;display:block;animation:beat 1.4s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.18)}24%{transform:scale(1)}}
+.setup-logo h1{font-size:24px;font-weight:900;color:var(--pri-d)}
+.setup-logo p{font-size:13px;color:var(--tx2);margin-top:6px}
+.steps{counter-reset:st;margin:0 0 6px;padding:0;list-style:none}
+.steps li{
+  counter-increment:st;position:relative;padding:0 0 14px 34px;font-size:13.5px;line-height:1.55;color:#6d5c63;
+}
+.steps li::before{
+  content:counter(st);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;
+  background:var(--pri-s);color:var(--pri-d);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.steps b{color:var(--pri-d)}
+.steps a{color:var(--pri-d);font-weight:700;text-decoration:none;border-bottom:1px solid #ffc4cf}
+
+/* ---------- 인증 화면 ---------- */
+#view-auth{padding:44px 22px}
+#view-auth .card{padding:26px 22px}
+.auth-logo{text-align:center;margin:6px 0 22px}
+.auth-logo h2{font-size:21px;font-weight:900;color:var(--pri-d);margin-top:8px}
+.auth-logo .sub{font-size:13px;color:var(--tx2);margin-top:4px}
+.seg{display:flex;background:#f6eef0;border-radius:13px;padding:4px;margin-bottom:20px}
+.seg button{
+  flex:1;border:none;background:transparent;border-radius:10px;padding:10px;
+  font-size:14px;font-weight:700;font-family:inherit;color:var(--tx2);cursor:pointer;transition:.15s;
+}
+.seg button.on{background:#fff;color:var(--pri-d);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+
+/* ---------- 커플 연결 ---------- */
+#view-connect{padding:44px 22px}
+.code-big{
+  font-size:34px;font-weight:900;letter-spacing:8px;text-align:center;color:var(--pri-d);
+  background:var(--pri-s);border-radius:16px;padding:18px 8px 18px 12px;margin:12px 0 6px;
+  font-variant-numeric:tabular-nums;
+}
+.waiting{text-align:center;color:var(--tx2);font-size:13.5px}
+.waiting .dots::after{content:'···';animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.2}}
+
+/* ---------- 앱 헤더 ---------- */
+header.apph{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(135deg,#ff7a8c,#ff5f7e);
+  padding:16px 18px 14px;border-radius:0 0 24px 24px;color:#fff;
+  box-shadow:0 6px 20px rgba(255,95,126,.3);
+}
+.apph-row{display:flex;align-items:center;gap:10px}
+.avatars{display:flex}
+.ava{
+  width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);
+  border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:900;color:#fff;backdrop-filter:blur(4px);
+}
+.ava+.ava{margin-left:-10px}
+.apph h1{font-size:17px;font-weight:900;flex:1;line-height:1.3}
+.apph .dday{font-size:12.5px;opacity:.92;font-weight:500}
+.apph .dday b{font-size:14px;font-weight:900}
+
+/* ---------- 탭 ---------- */
+.tabpane{display:none;padding:16px 16px 8px;animation:fadein .22s ease}
+.tabpane.on{display:block}
+h2.sec{font-size:16px;font-weight:900;margin:4px 2px 10px;display:flex;align-items:center;gap:6px}
+h2.sec .em{font-size:18px}
+
+/* ---------- 기록 작성 ---------- */
+.mood-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mood{
+  border:1.5px solid var(--line);background:#fff;border-radius:30px;padding:7px 11px;
+  font-size:13px;font-family:inherit;cursor:pointer;color:var(--tx2);transition:.13s;font-weight:500;
+}
+.mood.on{border-color:var(--pri);background:var(--pri-s);color:var(--pri-d);font-weight:700}
+.photo-pick{
+  margin-top:12px;border:1.5px dashed #f0c4cd;border-radius:14px;background:#fff8f9;
+  padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;
+}
+.photo-pick .ic{font-size:24px}
+.photo-pick .tx{flex:1;font-size:13px;color:var(--tx2);line-height:1.45}
+.photo-pick img{width:52px;height:52px;object-fit:cover;border-radius:10px}
+.save-btn{margin-top:16px}
+
+/* ---------- 피드 ---------- */
+.feed{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.rec{position:relative}
+.rec-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rec-ava{width:34px;height:34px;border-radius:50%;background:var(--pri-s);display:flex;align-items:center;justify-content:center;font-size:14px}
+.rec-who{flex:1}
+.rec-who b{font-size:14px}
+.rec-who span{display:block;font-size:11.5px;color:var(--tx2)}
+.rec-del{border:none;background:none;font-size:12px;color:#d49aa6;cursor:pointer;font-family:inherit;padding:4px}
+.rec h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
+.rec .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
+.rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.chip{font-size:11.5px;background:#fdf1f3;color:#c2687c;border-radius:20px;padding:4px 10px;font-weight:500}
+.rec .rec-img{width:100%;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
+.rec-heart{
+  margin-top:10px;border:1.5px solid var(--line);background:#fff;border-radius:30px;
+  padding:7px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--tx2);
+  transition:.13s;font-weight:500;
+}
+.rec-heart.on{border-color:#ff8fa3;background:#fff0f3;color:#e8556d;font-weight:700}
+.empty{text-align:center;padding:44px 20px;color:var(--tx2)}
+.empty .em{font-size:40px;display:block;margin-bottom:10px}
+.empty p{font-size:13.5px;line-height:1.6}
+
+/* ---------- 사진 ---------- */
+.fab{
+  position:fixed;bottom:104px;right:max(16px,calc(50% - 244px));z-index:30;
+  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#ff7a8c,#ff5f7e);color:#fff;font-size:24px;
+  box-shadow:0 8px 22px rgba(255,95,126,.45);transition:transform .12s;
+}
+.fab:active{transform:scale(.92)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:12px}
+.grid .ph{
+  aspect-ratio:1;border-radius:10px;object-fit:cover;width:100%;cursor:zoom-in;background:#f8e8eb;
+}
+.upbar{display:none;align-items:center;gap:10px;background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-top:12px;font-size:13px;color:var(--pri-d);font-weight:700}
+.upbar.show{display:flex}
+.spinner{
+  width:16px;height:16px;border:2.5px solid #ffd3da;border-top-color:var(--pri);border-radius:50%;
+  animation:spin .7s linear infinite;flex:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- 일정 ---------- */
+.cal{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head b{font-size:16.5px}
+.cal-head button{border:none;background:#faf1f3;width:32px;height:32px;border-radius:10px;font-size:15px;cursor:pointer;color:var(--pri-d);font-family:inherit}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-grid .dow{font-size:11px;color:var(--tx2);font-weight:700;padding:6px 0}
+.dow.sun{color:#ff7d8f}.dow.sat{color:#7da1ff}
+.cel{
+  aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:2px;
+}
+.cel.dim{color:#d8c9ce}
+.cel.today{background:#fff0f3;color:var(--pri-d);font-weight:900}
+.cel.sel{background:var(--pri);color:#fff;font-weight:900;box-shadow:0 3px 10px rgba(255,95,126,.4)}
+.cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px;position:absolute;bottom:5px}
+.cel.sel .dot{background:#fff}
+.day-panel{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.day-panel h3{font-size:15px;font-weight:900;margin-bottom:10px}
+.ev{display:flex;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid #f8eef0}
+.ev:last-child{border-bottom:none}
+.ev .eic{font-size:16px}
+.ev .etx{flex:1}
+.ev .etx b{font-size:14px}
+.ev .etx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
+.ev .edel{border:none;background:none;color:#d49aa6;font-size:12px;cursor:pointer;font-family:inherit;padding:2px}
+
+/* ---------- 설정 ---------- */
+.set-grp{margin-bottom:14px}
+.set-grp .card{padding:18px}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f8eef0}
+.set-row:last-child{border-bottom:none}
+.set-row .k{font-size:14px;font-weight:500}
+.set-row .v{font-size:13px;color:var(--tx2)}
+.set-row button.mini{
+  border:none;background:var(--pri-s);color:var(--pri-d);border-radius:9px;padding:7px 12px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.code-chip{font-weight:900;letter-spacing:3px;color:var(--pri-d);font-size:15px}
+
+/* ---------- 하단탭 ---------- */
+nav.tabs{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;z-index:40;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);display:flex;padding:7px 6px calc(10px + env(safe-area-inset-bottom));
+}
+nav.tabs button{
+  flex:1;border:none;background:none;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;
+  color:#b9a8af;font-size:10.5px;font-weight:700;transition:.15s;
+}
+nav.tabs button .em{font-size:21px;filter:grayscale(1);opacity:.6;transition:.15s}
+nav.tabs button.on{color:var(--pri-d)}
+nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
+
+/* ---------- 라이트박스 ---------- */
+#lightbox{
+  display:none;position:fixed;inset:0;z-index:100;background:rgba(20,8,12,.94);
+  align-items:center;justify-content:center;flex-direction:column;padding:20px;
+}
+#lightbox.on{display:flex}
+#lightbox img{max-width:100%;max-height:78vh;border-radius:10px;object-fit:contain}
+#lightbox .cap{color:#fff;font-size:13px;margin-top:14px;opacity:.85;text-align:center;line-height:1.6}
+#lightbox .close{
+  position:absolute;top:14px;right:14px;background:rgba(255,255,255,.14);border:none;color:#fff;
+  width:40px;height:40px;border-radius:50%;font-size:17px;cursor:pointer;
+}
+#lightbox .ldel{
+  margin-top:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#ffb9c4;border-radius:10px;padding:9px 18px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:700;
+}
+
+/* ---------- 토스트 ---------- */
+#toast{
+  position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(16px);z-index:120;
+  background:rgba(48,32,38,.94);color:#fff;font-size:13.5px;font-weight:500;
+  border-radius:30px;padding:11px 20px;opacity:0;pointer-events:none;transition:.25s;max-width:86%;text-align:center;
+  letter-spacing:-.02em;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- ═══════════ 0. Firebase 연결 ═══════════ -->
+  <div id="view-setup" class="view">
+    <div class="setup-logo">
+      <span class="heart">💕</span>
+      <h1>우리</h1>
+      <p>둘만의 사진·기록·일정을 한 곳에</p>
+    </div>
+    <div class="card">
+      <ol class="steps">
+        <li><b>console.firebase.google.com</b> 에서 무료 프로젝트를 만드세요 (구글 계정만 있으면 됩니다)</li>
+        <li>왼쪽 메뉴 <b>빌드 → Authentication → 시작하기</b> → <b>이메일/비밀번호</b> 사용 설정</li>
+        <li><b>빌드 → Firestore Database → 데이터베이스 만들기</b> (위치는 asia-east1 추천, <b>테스트 모드로 시작</b>)</li>
+        <li>⚙️ 프로젝트 설정 → 내 앱에서 <b>웹(&lt;/&gt;)</b> 추가 → 표시되는 <b>firebaseConfig</b> 전체를 아래에 붙여넣으세요</li>
+      </ol>
+      <label class="lb">firebaseConfig 붙여넣기</label>
+      <textarea id="cfg-input" rows="7" placeholder='const firebaseConfig = {&#10;  apiKey: "AIza...",&#10;  authDomain: "xxx.firebaseapp.com",&#10;  projectId: "xxx",&#10;  appId: "1:123:web:abc"&#10;};' style="font-size:12px;font-family:monospace"></textarea>
+      <div class="err" id="cfg-err"></div>
+      <button class="btn btn-pri" style="margin-top:14px" onclick="saveCfg()">연결하기 💕</button>
+      <p class="tiny" style="margin-top:12px">이 값은 이 폰의 브라우저에만 저장되고 외부로 전송되지 않습니다.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ 1. 로그인 ═══════════ -->
+  <div id="view-auth" class="view">
+    <div class="auth-logo">
+      <span style="font-size:40px">💕</span>
+      <h2>우리</h2>
+      <div class="sub">둘만의 추억 저장소</div>
+    </div>
+    <div class="card">
+      <div class="seg">
+        <button id="seg-login" class="on" onclick="authMode('login')">로그인</button>
+        <button id="seg-join" onclick="authMode('join')">회원가입</button>
+      </div>
+      <div id="join-extra" class="hidden">
+        <label class="lb label-first">닉네임</label>
+        <input id="in-nick" placeholder="예) 지수" maxlength="10">
+      </div>
+      <label class="lb">이메일</label>
+      <input id="in-email" type="email" placeholder="couple@email.com" autocomplete="email">
+      <label class="lb">비밀번호</label>
+      <input id="in-pass" type="password" placeholder="6자 이상" autocomplete="current-password">
+      <div class="err" id="auth-err"></div>
+      <button class="btn btn-pri" style="margin-top:18px" id="auth-btn" onclick="doAuth()">로그인</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 2. 커플 연결 ═══════════ -->
+  <div id="view-connect" class="view">
+    <div style="padding:44px 22px">
+      <div class="auth-logo">
+        <span style="font-size:40px">💑</span>
+        <h2>커플 연결</h2>
+        <div class="sub">두 사람이 연결되어야 함께 볼 수 있어요</div>
+      </div>
+      <div class="card">
+        <b style="font-size:15px">① 내 초대코드</b>
+        <div class="code-big" id="my-code">------</div>
+        <p class="tiny" style="text-align:center">파트너에게 이 코드를 알려주세요</p>
+        <div id="waiting-box" class="waiting hidden" style="margin-top:14px"><span class="dots">파트너가 입력할 때까지 기다리는 중</span></div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn-sub" onclick="copyCode()">코드 복사</button>
+          <button class="btn btn-ghost" onclick="regenCode()">코드 재생성</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <b style="font-size:15px">② 파트너 코드 입력</b>
+        <p class="tiny" style="margin-top:6px">상대방이 만든 초대코드를 입력하면 연결됩니다</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <input id="in-code" placeholder="6자리 코드" maxlength="6" style="text-align:center;font-weight:900;letter-spacing:5px;font-size:18px">
+          <button class="btn btn-pri" style="width:auto;padding:0 22px" onclick="joinByCode()">연결</button>
+        </div>
+        <div class="err" id="conn-err"></div>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:14px" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 3. 메인 앱 ═══════════ -->
+  <div id="view-app" class="view">
+    <header class="apph">
+      <div class="apph-row">
+        <div class="avatars" id="h-avas"></div>
+        <div style="flex:1">
+          <h1 id="h-cname">우리</h1>
+          <div class="dday" id="h-dday"></div>
+        </div>
+        <div style="font-size:24px" id="h-emo">💕</div>
+      </div>
+    </header>
+
+    <!-- ─ 홈 ─ -->
+    <div id="pane-home" class="tabpane on">
+      <div class="card">
+        <h2 class="sec"><span class="em">📝</span>오늘의 데이트 기록</h2>
+        <label class="lb label-first">언제</label>
+        <input type="date" id="r-date">
+        <label class="lb">제목</label>
+        <input id="r-title" placeholder="예) 한강 피크닉 🧺" maxlength="40">
+        <label class="lb">내용</label>
+        <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
+        <label class="lb">장소</label>
+        <input id="r-place" placeholder="예) 여의도 한강공원" maxlength="30">
+        <label class="lb">기분</label>
+        <div class="mood-row" id="r-moods"></div>
+        <div class="photo-pick" onclick="document.getElementById('r-file').click()">
+          <span class="ic">📷</span>
+          <div class="tx" id="pick-tx">사진 추가하기 (자동으로 압축돼요)</div>
+          <input type="file" id="r-file" accept="image/*" class="hidden">
+        </div>
+        <button class="btn btn-pri save-btn" id="rec-save" onclick="saveRecord()">기록 저장하기</button>
+      </div>
+      <h2 class="sec" style="margin-top:18px"><span class="em">💌</span>우리의 기록</h2>
+      <div class="feed" id="feed"></div>
+    </div>
+
+    <!-- ─ 사진 ─ -->
+    <div id="pane-photo" class="tabpane">
+      <h2 class="sec"><span class="em">🖼️</span>우리의 앨범 <span class="tiny" id="ph-count"></span></h2>
+      <div class="upbar" id="upbar"><div class="spinner"></div><span id="upbar-tx">업로드 중…</span></div>
+      <div class="grid" id="ph-grid"></div>
+      <div class="empty" id="ph-empty"><span class="em">📸</span><p>아직 사진이 없어요.<br>아래 + 버튼으로 소중한 순간을 올려보세요</p></div>
+      <button class="fab" onclick="document.getElementById('ph-file').click()">＋</button>
+      <input type="file" id="ph-file" accept="image/*" multiple class="hidden">
+    </div>
+
+    <!-- ─ 일정 ─ -->
+    <div id="pane-cal" class="tabpane">
+      <div class="cal">
+        <div class="cal-head">
+          <button onclick="calMove(-1)">‹</button>
+          <b id="cal-title"></b>
+          <button onclick="calMove(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="day-panel">
+        <h3 id="sel-title"></h3>
+        <div id="ev-list"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <input id="ev-title" placeholder="일정 추가 · 예) 영화 보기" maxlength="30" onkeydown="if(event.key==='Enter')addEvent()">
+          <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addEvent()">추가</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─ 설정 ─ -->
+    <div id="pane-set" class="tabpane">
+      <div class="set-grp">
+        <div class="card">
+          <h2 class="sec" style="margin:0 0 4px"><span class="em">👤</span>프로필</h2>
+          <label class="lb label-first">내 닉네임</label>
+          <div style="display:flex;gap:8px">
+            <input id="s-nick" maxlength="10">
+            <button class="btn btn-sub" style="width:auto;padding:0 20px" onclick="saveNick()">저장</button>
+          </div>
+        </div>
+      </div>
+      <div class="set-grp">
+        <div class="card">
+          <h2 class="sec" style="margin:0 0 4px"><span class="em">💕</span>커플 정보</h2>
+          <label class="lb label-first">커플 이름</label>
+          <input id="s-cname" placeholder="예) 지수&민준" maxlength="16">
+          <label class="lb">만난 날 (디데이)</label>
+          <input type="date" id="s-anni">
+          <button class="btn btn-sub" style="margin-top:14px" onclick="saveCouple()">커플 정보 저장</button>
+        </div>
+      </div>
+      <div class="set-grp">
+        <div class="card">
+          <div class="set-row"><span class="k">내 초대코드</span><span class="v code-chip" id="s-code"></span></div>
+          <div class="set-row"><span class="k">파트너</span><span class="v" id="s-partner">-</span></div>
+          <div class="set-row"><span class="k">로그인 계정</span><span class="v" id="s-email"></span></div>
+        </div>
+      </div>
+      <div class="set-grp">
+        <div class="card">
+          <button class="btn btn-ghost" style="margin-bottom:8px" onclick="doLogout()">로그아웃</button>
+          <button class="btn btn-danger" onclick="unlinkCouple()">커플 연결 해제</button>
+          <p class="tiny" style="margin-top:10px">사진은 업로드 시 자동 압축되어 저장돼요 (무료 저장공간 1GB ≒ 약 3,000장). 용량이 걱정될 땐 기존 사진을 정리해 주세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="on" data-tab="home" onclick="goTab('home')"><span class="em">🏠</span>홈</button>
+      <button data-tab="photo" onclick="goTab('photo')"><span class="em">📷</span>사진</button>
+      <button data-tab="cal" onclick="goTab('cal')"><span class="em">📅</span>일정</button>
+      <button data-tab="set" onclick="goTab('set')"><span class="em">⚙️</span>설정</button>
+    </nav>
+  </div>
+</div>
+
+<div id="lightbox">
+  <button class="close" onclick="closeLb()">✕</button>
+  <img id="lb-img" alt="">
+  <div class="cap" id="lb-cap"></div>
+  <button class="ldel hidden" id="lb-del" onclick="lbDelete()">🗑 삭제</button>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════ 유틸 ═══════════════════════════ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const toDateStr=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+let toastTimer;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+function showErr(id,msg){const e=$(id);e.textContent=msg;e.classList.add('show');}
+function hideErr(id){$(id).classList.remove('show');}
+function fmtDate(s){const[y,m,d]=s.split('-');return y+'년 '+(+m)+'월 '+(+d)+'일';}
+function fmtTime(ms){const d=new Date(ms),h=d.getHours();const ap=h<12?'오전':'오후';const hh=h%12||12;return ap+' '+hh+':'+pad(d.getMinutes());}
+function show(v){['view-setup','view-auth','view-connect','view-app'].forEach(x=>$(x).classList.remove('on'));$(v).classList.add('on');window.scrollTo(0,0);}
+
+/* ═══════════════════════════ Firebase 연결 ═══════════════════════════ */
+let auth=null,db=null;
+function parseCfg(raw){
+  try{const j=JSON.parse(raw);return j;}
+  catch(e){
+    const g=k=>{const m=raw.match(new RegExp(k+'\\s*:\\s*["\']([^"\']+)["\']'));return m?m[1]:null;};
+    const o={apiKey:g('apiKey'),authDomain:g('authDomain'),projectId:g('projectId'),messagingSenderId:g('messagingSenderId'),appId:g('appId')};
+    o.storageBucket=g('storageBucket')||'';
+    return o.apiKey&&o.projectId?o:null;
+  }
+}
+function saveCfg(){
+  const cfg=parseCfg($('cfg-input').value.trim());
+  if(!cfg||!cfg.apiKey||!cfg.projectId){showErr('cfg-err','firebaseConfig 내용이 올바르지 않아요. apiKey, projectId 가 포함되어야 해요.');return;}
+  localStorage.setItem('couple_firebase_cfg',JSON.stringify(cfg));
+  location.reload();
+}
+function initFirebase(){
+  const raw=localStorage.getItem('couple_firebase_cfg');
+  if(!raw){show('view-setup');return false;}
+  try{
+    firebase.initializeApp(JSON.parse(raw));
+    auth=firebase.auth();db=firebase.firestore();
+    registerAuthWatch();
+    return true;
+  }catch(e){localStorage.removeItem('couple_firebase_cfg');show('view-setup');return false;}
+}
+
+/* ═══════════════════════════ 인증 ═══════════════════════════ */
+let joinMode=false;
+function authMode(m){
+  joinMode=m==='join';
+  $('seg-login').classList.toggle('on',!joinMode);
+  $('seg-join').classList.toggle('on',joinMode);
+  $('join-extra').classList.toggle('hidden',!joinMode);
+  $('auth-btn').textContent=joinMode?'가입하고 시작하기':'로그인';
+  hideErr('auth-err');
+}
+function authErrMap(code){
+  if(code==='auth/invalid-email')return '이메일 형식을 확인해 주세요';
+  if(code==='auth/email-already-in-use')return '이미 가입된 이메일이에요. 로그인해 주세요';
+  if(code==='auth/weak-password')return '비밀번호는 6자 이상이어야 해요';
+  if(code==='auth/invalid-credential'||code==='auth/wrong-password'||code==='auth/user-not-found')return '이메일 또는 비밀번호를 확인해 주세요';
+  if(code==='auth/too-many-requests')return '시도가 너무 많아요. 잠시 후 다시 시도해 주세요';
+  if(code==='auth/network-request-failed')return '인터넷 연결을 확인해 주세요';
+  return '잠시 후 다시 시도해 주세요 ('+code+')';
+}
+async function doAuth(){
+  const email=$('in-email').value.trim(),pass=$('in-pass').value,nick=$('in-nick').value.trim();
+  hideErr('auth-err');
+  if(!email||!pass.length){showErr('auth-err','이메일과 비밀번호를 입력해 주세요');return;}
+  if(joinMode&&!nick){showErr('auth-err','닉네임을 입력해 주세요');return;}
+  $('auth-btn').disabled=true;
+  try{
+    if(joinMode){
+      const cred=await auth.createUserWithEmailAndPassword(email,pass);
+      await cred.user.updateProfile({displayName:nick});
+      await db.collection('users').doc(cred.user.uid).set({
+        nickname:nick,inviteCode:genCode(),coupleId:null,createdAt:Date.now()
+      });
+    }else{
+      await auth.signInWithEmailAndPassword(email,pass);
+    }
+  }catch(e){showErr('auth-err',authErrMap(e.code||''));}
+  $('auth-btn').disabled=false;
+}
+function doLogout(){auth.signOut().then(()=>{detachAll();show('view-auth');authMode('login');});}
+const CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function genCode(){let s='';for(let i=0;i<6;i++)s+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];return s;}
+
+/* ═══════════════════════════ 상태 ═══════════════════════════ */
+let me=null,userDoc=null,coupleDoc=null,partnerUid=null,partnerDoc=null;
+let unsubs=[];
+function detachAll(){unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
+function registerAuthWatch(){auth.onAuthStateChanged(async u=>{
+  detachAll();
+  if(!u){me=null;show('view-auth');return;}
+  me=u;
+  try{
+    let ud=await db.collection('users').doc(u.uid).get();
+    if(!ud.exists){ // 기존 회원가입 없이 로그인한 방어코드
+      await db.collection('users').doc(u.uid).set({nickname:u.displayName||'나',inviteCode:genCode(),coupleId:null,createdAt:Date.now()});
+      ud=await db.collection('users').doc(u.uid).get();
+    }
+    userDoc=ud.data();
+    if(userDoc.coupleId){enterApp(userDoc.coupleId);}else{showConnect();}
+  }catch(e){toast('데이터를 불러오지 못했어요: '+e.code);show('view-auth');}
+  });
+}
+
+/* ═══════════════════════════ 커플 연결 ═══════════════════════════ */
+function showConnect(){
+  show('view-connect');
+  $('my-code').textContent=userDoc.inviteCode||'------';
+  $('in-code').value='';hideErr('conn-err');
+  $('waiting-box').classList.add('hidden');
+  // 내 초대코드로 이미 누군가 연결했는지 감시 (파트너가 나를 선택한 경우 대비)
+  const q=db.collection('couples').where('members','array-contains',me.uid);
+  unsubs.push(q.onSnapshot(snap=>{
+    if(!snap.empty){enterApp(snap.docs[0].id);}
+  }));
+}
+function copyCode(){
+  const c=userDoc.inviteCode;
+  (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>toast('코드가 복사됐어요 💕')).catch(()=>toast('코드: '+c));
+}
+async function regenCode(){
+  const c=genCode();
+  await db.collection('users').doc(me.uid).update({inviteCode:c});
+  userDoc.inviteCode=c;$('my-code').textContent=c;toast('새 코드가 발급됐어요');
+}
+async function joinByCode(){
+  const code=$('in-code').value.trim().toUpperCase();
+  hideErr('conn-err');
+  if(code.length!==6){showErr('conn-err','6자리 코드를 입력해 주세요');return;}
+  if(code===userDoc.inviteCode){showErr('conn-err','내 코드예요! 파트너의 코드를 입력해 주세요');return;}
+  try{
+    const qs=await db.collection('users').where('inviteCode','==',code).limit(1).get();
+    if(qs.empty){showErr('conn-err','코드를 찾을 수 없어요. 다시 확인해 주세요');return;}
+    const partner=qs.docs[0];
+    // 상대가 만든 1인 커플 문서 찾기
+    const cq=await db.collection('couples').where('members','array-contains',partner.id).limit(1).get();
+    let coupleId;
+    if(!cq.empty){coupleId=cq.docs[0].id;}
+    else{ // 없으면 내가 커플 생성
+      const cd=await db.collection('couples').add({members:[me.uid,partner.id],name:null,anniversary:null,createdAt:Date.now()});
+      coupleId=cd.id;
+    }
+    await db.collection('couples').doc(coupleId).update({members:firebase.firestore.FieldValue.arrayUnion(me.uid)});
+    await db.collection('users').doc(me.uid).update({coupleId});
+    await db.collection('users').doc(partner.id).update({coupleId}).catch(()=>{});
+    toast('연결됐어요! 🎉');
+  }catch(e){showErr('conn-err','연결에 실패했어요 ('+(e.code||'')+'). Firebase 보안규칙을 안내대로 적용했는지 확인해 주세요');}
+}
+
+/* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
+function enterApp(coupleId){
+  show('view-app');goTab('home');
+  unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
+    if(!doc.exists){ // 해제됨
+      detachAll();
+      db.collection('users').doc(me.uid).update({coupleId:null}).catch(()=>{});
+      toast('커플 연결이 해제됐어요');show('view-auth');return;
+    }
+    coupleDoc={id:doc.id,...doc.data()};
+    partnerUid=(coupleDoc.members||[]).find(x=>x!==me.uid)||null;
+    renderHeader();
+    watchPartner();
+  }));
+  const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
+  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e)));
+  const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
+  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e)));
+  const evs=db.collection('couples').doc(coupleId).collection('events');
+  unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();},e=>console.error(e)));
+  // 폼 초기값
+  $('r-date').value=toDateStr(new Date());
+  $('r-moods').innerHTML=MOODS.map((m,i)=>'<button type="button" class="mood'+(i===0?' on':'')+'" data-i="'+i+'" onclick="pickMood(this)">'+m+'</button>').join('');
+}
+function watchPartner(){
+  if(!partnerUid)return;
+  unsubs.push(db.collection('users').doc(partnerUid).onSnapshot(d=>{partnerDoc=d.exists?d.data():null;renderHeader();}));
+}
+function renderHeader(){
+  if(!coupleDoc)return;
+  $('h-cname').textContent=coupleDoc.name||'우리 💕';
+  const my=me.displayName||userDoc?.nickname||'나';
+  const pn=partnerDoc?.nickname||'파트너';
+  $('h-avas').innerHTML='<div class="ava">'+esc(my[0]||'나')+'</div>'+(partnerUid?'<div class="ava">'+esc(pn[0]||'+)')+'</div>':'');
+  if(coupleDoc.anniversary){
+    const days=Math.floor((Date.now()-new Date(coupleDoc.anniversary+'T00:00:00'))/86400000)+1;
+    $('h-dday').innerHTML=days>0?'♥ 사랑한 지 <b>'+days+'일</b>':'D+'+days;
+    $('h-emo').textContent=['💕','🥰','💞','💖'][days%4];
+  }else{$('h-dday').textContent='설정에서 만난 날을 정해보세요';}
+  // 설정 탭
+  $('s-nick').value=userDoc?.nickname||'';
+  $('s-cname').value=coupleDoc.name||'';
+  $('s-anni').value=coupleDoc.anniversary||'';
+  $('s-code').textContent=userDoc?.inviteCode||'-';
+  $('s-email').textContent=me.email||'-';
+  $('s-partner').textContent=partnerDoc?.nickname||'-';
+}
+async function saveNick(){
+  const v=$('s-nick').value.trim();if(!v){toast('닉네임을 입력해 주세요');return;}
+  await db.collection('users').doc(me.uid).update({nickname:v});
+  if(me.displayName!==v)await me.updateProfile({displayName:v});
+  userDoc.nickname=v;toast('저장했어요 ✨');
+}
+async function saveCouple(){
+  await db.collection('couples').doc(coupleDoc.id).update({
+    name:$('s-cname').value.trim()||null,
+    anniversary:$('s-anni').value||null
+  });
+  toast('커플 정보를 저장했어요 💕');
+}
+async function unlinkCouple(){
+  if(!confirm('정말 연결을 해제할까요? 올린 기록·사진·일정 데이터가 삭제됩니다.'))return;
+  const cid=coupleDoc.id;
+  await db.collection('users').doc(me.uid).update({coupleId:null}).catch(()=>{});
+  await db.collection('couples').doc(cid).delete();
+}
+
+/* ═══════════════════════════ 탭 ═══════════════════════════ */
+function goTab(t){
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
+  $('pane-'+t).classList.add('on');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  window.scrollTo(0,0);
+  if(t==='cal'){renderCal();renderDay();}
+}
+
+/* ═══════════════════════════ 기록 ═══════════════════════════ */
+const MOODS=['💕 설렘','😊 행복','🥰 듬직','😢 아쉬움','😤 삐짐','🤗 포근'];
+let pickedPhoto=null,pickedMood=0;
+function pickMood(el){document.querySelectorAll('.mood').forEach(m=>m.classList.remove('on'));el.classList.add('on');pickedMood=+el.dataset.i;}
+$('r-file').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  $('pick-tx').textContent='압축하는 중…';
+  try{pickedPhoto=await compressImage(f);$('pick-tx').innerHTML='✅ 사진 선택 완료 <span style="color:#4cc38a">('+Math.round(pickedPhoto.length*3/4/1024)+'KB)</span>';}
+  catch(err){$('pick-tx').textContent='사진을 불러오지 못했어요';}
+  e.target.value='';
+});
+async function saveRecord(){
+  const title=$('r-title').value.trim(),body=$('r-body').value.trim(),place=$('r-place').value.trim(),date=$('r-date').value;
+  if(!title&&!body&&!pickedPhoto){toast('제목이나 내용, 사진 중 하나는 넣어주세요');return;}
+  if(!date){toast('날짜를 선택해 주세요');return;}
+  const btn=$('rec-save');btn.disabled=true;btn.textContent='저장 중…';
+  try{
+    await db.collection('couples').doc(coupleDoc.id).collection('records').add({
+      author:me.uid,authorName:me.displayName||userDoc.nickname||'나',
+      date,title,body,place,mood:MOODS[pickedMood],
+      photoB64:pickedPhoto||null,hearts:{},ts:Date.now()
+    });
+    $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;
+    $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
+    toast('기록을 저장했어요 💌');
+  }catch(e){
+    toast(e.code==='permission-denied'?'저장 실패: Firebase 보안규칙을 확인해 주세요':'저장에 실패했어요: '+(e.code||''));
+  }
+  btn.disabled=false;btn.textContent='기록 저장하기';
+}
+let feedItems=[];
+function renderFeed(items){
+  feedItems=items;
+  const box=$('feed');
+  if(!items.length){box.innerHTML='<div class="empty" style="background:#fff;border-radius:20px"><span class="em">🌱</span><p>첫 기록을 남겨보세요!<br>상대방 화면에도 바로 나타나요</p></div>';return;}
+  let lastDate='';
+  box.innerHTML=items.map(r=>{
+    const mine=r.author===me.uid;
+    const heartN=Object.keys(r.hearts||{}).length;
+    const hearted=!!(r.hearts||{})[me.uid];
+    let dateHead='';
+    if(r.date!==lastDate){dateHead='<div style="text-align:center;margin:6px 0 2px;font-size:12px;color:var(--tx2);font-weight:700">'+fmtDate(r.date)+'</div>';lastDate=r.date;}
+    return dateHead+'<div class="card rec">'
+      +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(mine?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
+      +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
+      +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
+      +((r.place||r.mood)?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+(r.mood?'<span class="chip">'+esc(r.mood)+'</span>':'')+'</div>':'')
+      +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
+      +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
+      +'</div>';
+  }).join('');
+}
+async function toggleHeart(id){
+  const r=feedItems.find(x=>x.id===id);if(!r)return;
+  const cur=!!(r.hearts||{})[me.uid];
+  await db.collection('couples').doc(coupleDoc.id).collection('records').doc(id)
+    .update({['hearts.'+me.uid]:!cur});
+}
+async function delRecord(id){
+  if(!confirm('이 기록을 삭제할까요?'))return;
+  await db.collection('couples').doc(coupleDoc.id).collection('records').doc(id).delete();
+  toast('삭제했어요');
+}
+
+/* ═══════════════════════════ 사진 ═══════════════════════════ */
+function compressImage(file,maxDim=1400,q=0.72){
+  return new Promise((res,rej)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let{width:w,height:h}=img;
+      const sc=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      let data=cv.toDataURL('image/jpeg',q);
+      if(data.length>900000)data=cv.toDataURL('image/jpeg',0.5); // 1MB 문서 제한 방지
+      res(data);
+    };
+    img.onerror=rej;img.src=url;
+  });
+}
+let photoItems=[],upBusy=false;
+$('ph-file').addEventListener('change',async e=>{
+  const files=[...e.target.files];e.target.value='';
+  if(!files.length||upBusy)return;upBusy=true;
+  const bar=$('upbar');bar.classList.add('show');
+  try{
+    for(let i=0;i<files.length;i++){
+      $('upbar-tx').textContent='압축·업로드 중… ('+(i+1)+'/'+files.length+')';
+      const b64=await compressImage(files[i]);
+      await db.collection('couples').doc(coupleDoc.id).collection('photos').add({
+        owner:me.uid,ownerName:me.displayName||userDoc.nickname||'나',b64,ts:Date.now()
+      });
+    }
+    toast(files.length+'장 업로드 완료 📸');
+  }catch(err){
+    toast(err.code==='permission-denied'?'업로드 실패: 보안규칙 확인 필요':'업로드 실패: '+(err.code||''));
+  }
+  bar.classList.remove('show');upBusy=false;
+});
+function renderPhotos(items){
+  photoItems=items;
+  $('ph-empty').classList.toggle('hidden',!!items.length);
+  $('ph-count').textContent=items.length?items.length+'장':'';
+  $('ph-grid').innerHTML=items.map((p,i)=>'<img class="ph" src="'+p.b64+'" loading="lazy" onclick="openLb('+i+',false)">').join('');
+}
+let lbState=null;
+function openLb(key,isRec){
+  if(isRec){const r=feedItems.find(x=>x.id===key);if(!r)return;lbState={type:'rec',id:key,img:r.photoB64,cap:(r.authorName||'')+' · '+fmtTime(r.ts),mine:r.author===me.uid};}
+  else{const p=photoItems[key];if(!p)return;lbState={type:'ph',id:key,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid};}
+  $('lb-img').src=lbState.img;
+  $('lb-cap').textContent=lbState.cap;
+  $('lb-del').classList.toggle('hidden',!lbState.mine);
+  $('lightbox').classList.add('on');
+}
+function closeLb(){$('lightbox').classList.remove('on');$('lb-img').src='';}
+async function lbDelete(){
+  if(!lbState||!lbState.mine||!confirm('이 사진을 삭제할까요?'))return;
+  if(lbState.type==='ph'){
+    const p=photoItems[lbState.id];
+    await db.collection('couples').doc(coupleDoc.id).collection('photos').doc(p.id).delete();
+  }else{
+    await db.collection('couples').doc(coupleDoc.id).collection('records').doc(lbState.id).update({photoB64:null});
+  }
+  closeLb();toast('삭제했어요');
+}
+
+/* ═══════════════════════════ 일정 ═══════════════════════════ */
+let events=[],calY=new Date().getFullYear(),calM=new Date().getMonth(),selDate=toDateStr(new Date());
+function calMove(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();renderDay();}
+function renderCal(){
+  $('cal-title').textContent=calY+'년 '+(calM+1)+'월';
+  const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
+  const today=toDateStr(new Date());
+  const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
+  let html='';
+  ['일','월','화','수','목','금','토'].forEach((d,i)=>html+='<div class="dow'+(i===0?' sun':i===6?' sat':'')+'">'+d+'</div>');
+  for(let i=0;i<off;i++)html+='<div class="cel dim"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=calY+'-'+pad(calM+1)+'-'+pad(d);
+    const cls='cel'+(ds===today?' today':'')+(ds===selDate?' sel':'');
+    html+='<div class="'+cls+'" onclick="pickDay(\''+ds+'\')">'+d+((evByDay[ds]||[]).length?'<div class="dot"></div>':'')+'</div>';
+  }
+  $('cal-grid').innerHTML=html;
+}
+function pickDay(ds){selDate=ds;renderCal();renderDay();}
+function renderDay(){
+  if(!$('sel-title'))return;
+  $('sel-title').textContent=fmtDate(selDate)+(selDate===toDateStr(new Date())?' · 오늘':'');
+  const list=events.filter(e=>e.date===selDate).sort((a,b)=>a.ts-b.ts);
+  $('ev-list').innerHTML=list.length?list.map(e=>
+    '<div class="ev"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
+  ).join(''):'<p class="tiny">등록된 일정이 없어요. 아래에서 추가해보세요 📅</p>';
+}
+async function addEvent(){
+  const t=$('ev-title').value.trim();if(!t){toast('일정 제목을 입력해 주세요');return;}
+  try{
+    await db.collection('couples').doc(coupleDoc.id).collection('events').add({
+      date:selDate,title:t,memo:'',createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now()
+    });
+    $('ev-title').value='';toast('일정을 추가했어요 📌');
+  }catch(e){toast('추가 실패: '+(e.code||''));}
+}
+async function delEvent(id){
+  await db.collection('couples').doc(coupleDoc.id).collection('events').doc(id).delete();
+}
+
+/* ═══════════════════════════ 시작 ═══════════════════════════ */
+if(initFirebase()){authMode('login');}
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
