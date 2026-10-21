@@ -278,6 +278,14 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 #lightbox.on{display:flex}
 #lightbox img{max-width:100%;max-height:78vh;border-radius:10px;object-fit:contain}
 #lightbox .cap{color:#fff;font-size:13px;margin-top:14px;opacity:.85;text-align:center;line-height:1.6}
+#lightbox .nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.12);border:none;color:#fff;
+  width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;
+}
+#lightbox .prev{left:10px}
+#lightbox .next{right:10px}
+#lightbox .nav:disabled{opacity:.25;cursor:default}
 #lightbox .close{
   position:absolute;top:14px;right:14px;background:rgba(255,255,255,.14);border:none;color:#fff;
   width:40px;height:40px;border-radius:50%;font-size:17px;cursor:pointer;
@@ -529,6 +537,8 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 
 <div id="lightbox">
   <button class="close" onclick="closeLb()">✕</button>
+  <button class="nav prev" id="lb-prev" onclick="lbMove(-1)">‹</button>
+  <button class="nav next" id="lb-next" onclick="lbMove(1)">›</button>
   <img id="lb-img" alt="">
   <div class="cap" id="lb-cap"></div>
   <button class="ldel hidden" id="lb-del" onclick="lbDelete()">🗑 삭제</button>
@@ -976,15 +986,42 @@ function renderPhotos(items){
   $('ph-count').textContent=items.length?items.length+'장':'';
   $('ph-grid').innerHTML=items.map((p,i)=>'<img class="ph" src="'+p.b64+'" loading="lazy" onclick="openLb('+i+',false)">').join('');
 }
-let lbState=null;
-function openLb(key,isRec){
-  if(isRec){const r=feedItems.find(x=>x.id===key);if(!r)return;lbState={type:'rec',id:key,img:r.photoB64,cap:(r.authorName||'')+' · '+fmtTime(r.ts),mine:r.author===me.uid};}
-  else{const p=photoItems[key];if(!p)return;lbState={type:'ph',id:key,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid};}
+let lbState=null,lbList=[];
+function buildLbList(){
+  // 앨범 사진 + 기록 사진을 시간순으로 합친 목록
+  lbList=photoItems.map(p=>({type:'ph',id:p.id,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid}))
+    .concat(feedItems.filter(r=>r.photoB64).map(r=>({type:'rec',id:r.id,img:r.photoB64,cap:(r.authorName||'')+' · '+fmtTime(r.ts),mine:r.author===me.uid})));
+  lbList.sort((a,b)=>b.cap>a.cap?-1:1);
+}
+function lbFind(key,isRec){return lbList.findIndex(x=>x.type===(isRec?'rec':'ph')&&x.id===key);}
+function lbShow(i){
+  if(i<0)i=lbList.length-1;
+  if(i>=lbList.length)i=0;
+  lbState={...lbList[i],idx:i};
   $('lb-img').src=lbState.img;
-  $('lb-cap').textContent=lbState.cap;
+  $('lb-cap').textContent=lbState.cap+' · '+(i+1)+'/'+lbList.length;
   $('lb-del').classList.toggle('hidden',!lbState.mine);
+  const one=lbList.length<=1;
+  $('lb-prev').disabled=one;$('lb-next').disabled=one;
   $('lightbox').classList.add('on');
 }
+function lbMove(dir){if(!lbState||!lbList.length)return;lbShow(lbState.idx+dir);}
+function openLb(key,isRec){
+  buildLbList();
+  const i=lbFind(key,isRec);
+  lbShow(i>=0?i:0);
+}
+document.addEventListener('touchstart',e=>{
+  if(!$('lightbox').classList.contains('on'))return;
+  lbTx=e.touches[0].clientX;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!$('lightbox').classList.contains('on')||lbTx===null)return;
+  const dx=e.changedTouches[0].clientX-lbTx;
+  lbTx=null;
+  if(Math.abs(dx)>50)lbMove(dx<0?1:-1); // 왼쪽으로 밀면 다음
+},{passive:true});
+let lbTx=null;
 function closeLb(){$('lightbox').classList.remove('on');$('lb-img').src='';}
 async function lbDelete(){
   if(!lbState||!lbState.mine||!confirm('이 사진을 삭제할까요?'))return;
@@ -1027,7 +1064,7 @@ function renderCal(){
       inner+='<div class="dot"></div><div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';
       if(nEv>1)inner+='<div class="ev-stars">'+'★'.repeat(Math.min(nEv-1,3))+'</div>';
     }
-    else if(hasAnn){
+    if(hasAnn){
       const a=annByDay[ds][0];
       let lbl=a.label;
       if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일';
