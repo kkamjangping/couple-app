@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#ff6b81">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>우리 · 커플 앱</title>
+<title>pink combat · 커플 앱</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -304,7 +304,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
   <div id="view-setup" class="view">
     <div class="setup-logo">
       <span class="heart">💕</span>
-      <h1>우리</h1>
+      <h1>pink combat</h1>
       <p>둘만의 사진·기록·일정을 한 곳에</p>
     </div>
     <div class="card">
@@ -326,7 +326,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
   <div id="view-auth" class="view">
     <div class="auth-logo">
       <span style="font-size:40px">💕</span>
-      <h2>우리</h2>
+      <h2>pink combat</h2>
       <div class="sub">둘만의 추억 저장소</div>
     </div>
     <div class="card">
@@ -384,7 +384,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
       <div class="apph-row">
         <div class="avatars" id="h-avas"></div>
         <div style="flex:1">
-          <h1 id="h-cname">우리</h1>
+          <h1 id="h-cname">pink combat</h1>
           <div class="dday" id="h-dday"></div>
           <div class="ann-badge" id="h-ann" onclick="goNextAnn()" style="display:none"></div>
         </div>
@@ -761,7 +761,7 @@ function anniversariesOf(annStr, pbdayStr, fromStr){
 function fmtKDate(d){const y=d.getFullYear();const m=d.getMonth()+1;const dd=d.getDate();return m+'월 '+dd+'일';}
 function renderHeader(){
   if(!coupleDoc)return;
-  $('h-cname').textContent=coupleDoc.name||'우리 💕';
+  $('h-cname').textContent=coupleDoc.name||'pink combat 💕';
   const my=me.displayName||userDoc?.nickname||'나';
   const pn=partnerDoc?.nickname||'파트너';
   const myAv=userDoc&&userDoc.avatarB64?'<img src="'+userDoc.avatarB64+'" alt="">':'';
