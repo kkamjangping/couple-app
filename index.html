@@ -419,6 +419,10 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addEvent()">추가</button>
         </div>
       </div>
+      <div class="day-panel" id="day-records-panel" style="margin-top:12px">
+        <h3 id="day-rec-title"></h3>
+        <div id="day-rec-list"></div>
+      </div>
     </div>
 
     <!-- ─ 설정 ─ -->
@@ -886,6 +890,24 @@ function renderDay(){
   $('ev-list').innerHTML=list.length?list.map(e=>
     '<div class="ev"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
   ).join(''):'<p class="tiny">등록된 일정이 없어요. 아래에서 추가해보세요 📅</p>';
+  // 그 날의 기록 (피드에서 날짜가 일치하는 것)
+  const recs=feedItems.filter(r=>r.date===selDate).sort((a,b)=>b.ts-a.ts);
+  const panel=$('day-records-panel');
+  if(!recs.length){panel.classList.add('hidden');return;}
+  panel.classList.remove('hidden');
+  $('day-rec-title').textContent='💌 그 날의 기록 · '+recs.length+'개';
+  $('day-rec-list').innerHTML=recs.map(r=>{
+    const heartN=Object.keys(r.hearts||{}).length;
+    const hearted=!!(r.hearts||{})[me.uid];
+    return '<div style="padding:10px 2px;border-bottom:1px solid #f8eef0">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span></div>'
+      +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
+      +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
+      +((r.place||r.mood)?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+(r.mood?'<span class="chip">'+esc(r.mood)+'</span>':'')+'</div>':'')
+      +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
+      +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
+      +'</div>';
+  }).join('');
 }
 async function addEvent(){
   const t=$('ev-title').value.trim();if(!t){toast('일정 제목을 입력해 주세요');return;}
