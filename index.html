@@ -778,7 +778,7 @@ function renderHeader(){
     $('h-emo').textContent=['💕','🥰','💞','💖'][days%4];
     // 다가오는 기념일 배지
     const today=toDateStr(new Date());
-    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today,me.uid===coupleDoc.members[0]?(partnerDoc&&partnerDoc.birthday||null):(userDoc&&userDoc.birthday||null));
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today,(coupleDoc.myBirthday||null));
     if(anns.length){
       const a=anns[0];
       const diff=Math.round((a.date-new Date(today+'T00:00:00'))/86400000);
@@ -800,7 +800,7 @@ function renderHeader(){
   $('s-cname').value=coupleDoc.name||'';
   $('s-anni').value=coupleDoc.anniversary||'';
   $('s-pbday').value=coupleDoc.partnerBirthday||'';
-  $('s-mybday').value=userDoc&&userDoc.birthday||'';
+  $('s-mybday').value=coupleDoc.myBirthday||'';
   $('s-code').textContent=userDoc?.inviteCode||'-';
   $('s-email').textContent=me.email||'-';
   $('s-partner').textContent=partnerDoc?.nickname||'-';
@@ -818,7 +818,6 @@ async function saveCouple(){
     partnerBirthday:$('s-pbday').value||null,
     myBirthday:$('s-mybday').value||null
   });
-  await db.collection('users').doc(me.uid).update({birthday:$('s-mybday').value||null}).catch(()=>{});
   toast('커플 정보를 저장했어요 💕');
 }
 async function unlinkCouple(){
@@ -1009,7 +1008,7 @@ function renderCal(){
   let annByDay={};
   if(coupleDoc&&coupleDoc.anniversary){
     const first=new Date(calY,calM,1),last=new Date(calY,calM+1,0);
-    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,toDateStr(new Date(first-86400000*200)),coupleDoc.members[0]===me.uid?(partnerDoc&&partnerDoc.birthday||null):(userDoc&&userDoc.birthday||null));
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,toDateStr(new Date(first-86400000*200)),(coupleDoc.myBirthday||null));
     anns.forEach(a=>{const ds=toDateStr(a.date);if(a.date>=first&&a.date<=last){(annByDay[ds]=annByDay[ds]||[]).push(a);}});
   }
   let html='';
