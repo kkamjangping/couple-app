@@ -229,6 +229,8 @@ h2.sec .em{font-size:18px}
 }
 .cel .dots-row{display:flex;gap:3px;justify-content:center;margin-top:2px}
 .cel .dots-row .dot{margin-top:0;position:static}
+.cel .dots-row .dot.ann{background:#ffb43f}
+.cel .ann-lb{margin-top:0}
 .cel .ev-lb{
   font-size:8.5px;font-weight:700;color:var(--pri-d);line-height:1.1;margin-top:1px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
@@ -277,12 +279,13 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
   align-items:center;justify-content:center;flex-direction:column;padding:20px;
 }
 #lightbox.on{display:flex}
-#lightbox img{max-width:100%;max-height:78vh;border-radius:10px;object-fit:contain}
+#lightbox img{max-width:calc(100% - 110px);max-height:78vh;border-radius:10px;object-fit:contain;position:relative;z-index:1}
 #lightbox .cap{color:#fff;font-size:13px;margin-top:14px;opacity:.85;text-align:center;line-height:1.6}
 #lightbox .nav{
   position:absolute;top:50%;transform:translateY(-50%);
   background:rgba(255,255,255,.12);border:none;color:#fff;
   width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;
+  z-index:10;
 }
 #lightbox .prev{left:10px}
 #lightbox .next{right:10px}
@@ -1067,18 +1070,24 @@ function renderCal(){
     const hasAnn=(annByDay[ds]||[]).length>0;
     let cls2=cls+(hasRec?' recday':'');
     let inner=d;
-    if(hasEv){
-      const nEv=evByDay[ds].length;
-      const nDots=Math.min(nEv,3);
-      inner+='<div class="dots-row">'+'<div class="dot"></div>'.repeat(nDots)+'</div>';
-      inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';
+    // 점: 기념일 있으면 첫 점=주황, 나머지 분홍(일정 수). 총 최대 4개
+    const nEv=Math.min(hasEv?evByDay[ds].length:0, hasAnn?3:4);
+    if(hasEv||hasAnn){
+      let dots='';
+      if(hasAnn)dots+='<div class="dot ann"></div>';
+      for(let i=0;i<nEv;i++)dots+='<div class="dot"></div>';
+      inner+='<div class="dots-row">'+dots+'</div>';
     }
+    // 윗줄: 기념일 라벨 / 아랫줄: 첫 일정 제목
     if(hasAnn){
       const a=annByDay[ds][0];
       let lbl=a.label;
       if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일';
       if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
-      inner+='<div class="ann-dot"></div><div class="ann-lb">'+esc(lbl.slice(0,4))+'</div>';
+      inner+='<div class="ann-lb">'+esc(lbl.slice(0,4))+'</div>';
+    }
+    if(hasEv){
+      inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';
     }
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')">'+inner+'</div>';
   }
