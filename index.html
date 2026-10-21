@@ -206,14 +206,19 @@ h2.sec .em{font-size:18px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
 .cal-grid .dow{font-size:11px;color:var(--tx2);font-weight:700;padding:6px 0}
 .dow.sun{color:#ff7d8f}.dow.sat{color:#7da1ff}
+.cal-grid{grid-auto-rows:52px}
 .cel{
-  aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:2px;
+  height:52px;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:0;
+  overflow:hidden;min-width:0;
 }
+.cel .num{line-height:1.1;flex:none}
+.cel .dots-row{flex:none;margin-top:2px}
+.cel .ann-lb,.cel .ev-lb{flex:none;max-width:98%;line-height:1.15}
 .cel.dim{color:#d8c9ce}
 .cel.today{color:var(--pri-d);font-weight:900}
 .cel.recday{color:var(--pri);font-weight:700}
-.cel.sel{background:#fff;border:2px solid var(--pri);color:var(--pri-d);font-weight:900;box-shadow:0 3px 10px rgba(255,95,126,.25)}
+.cel.sel{background:#fff;box-shadow:inset 0 0 0 2px var(--pri),0 2px 8px rgba(255,95,126,.25);color:var(--pri-d);font-weight:900}
 .cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px}
 .cel .ann-dot{
   width:5px;height:5px;border-radius:50%;background:#ffb43f;margin-top:2px;
@@ -1033,6 +1038,12 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>50)lbMove(dx<0?1:-1); // 왼쪽으로 밀면 다음
 },{passive:true});
 let lbTx=null;
+document.addEventListener('keydown',e=>{
+  if(!$('lightbox').classList.contains('on'))return;
+  if(e.key==='ArrowLeft'){e.preventDefault();lbMove(-1);}
+  else if(e.key==='ArrowRight'){e.preventDefault();lbMove(1);}
+  else if(e.key==='Escape')closeLb();
+});
 function closeLb(){$('lightbox').classList.remove('on');$('lb-img').src='';}
 async function lbDelete(){
   if(!lbState||!lbState.mine||!confirm('이 사진을 삭제할까요?'))return;
@@ -1089,7 +1100,7 @@ function renderCal(){
     if(hasEv){
       inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';
     }
-    html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')">'+inner+'</div>';
+    html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
   }
   $('cal-grid').innerHTML=html;
 }
