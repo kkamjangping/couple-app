@@ -1105,6 +1105,27 @@ function renderCal(){
   $('cal-grid').innerHTML=html;
 }
 function pickDay(ds){selDate=ds;renderCal();renderDay();}
+// 달력 좌우 스와이프로 월 이동
+let calTx=null,calTy=null;
+document.addEventListener('touchstart',e=>{
+  const g=$('cal-grid');
+  if(!g||!e.touches.length)return;
+  const t=e.touches[0];
+  const r=g.getBoundingClientRect();
+  if(t.clientX>=r.left-20&&t.clientX<=r.right+20&&t.clientY>=r.top-20&&t.clientY<=r.bottom+20){
+    calTx=t.clientX;calTy=t.clientY;
+  }
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(calTx===null||!e.changedTouches.length)return;
+  const dx=e.changedTouches[0].clientX-calTx;
+  const dy=e.changedTouches[0].clientY-calTy;
+  calTx=null;calTy=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
+    calMove(dx<0?1:-1); // 왼쪽으로 밀면 다음 달
+    toast(dx<0?'다음 달 ›':'‹ 이전 달');
+  }
+},{passive:true});
 function renderDay(){
   if(!$('sel-title'))return;
   $('sel-title').textContent=fmtDate(selDate)+(selDate===toDateStr(new Date())?' · 오늘':'');
