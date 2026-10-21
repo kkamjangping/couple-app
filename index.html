@@ -803,8 +803,8 @@ function renderHeader(){
       const a=anns[0];
       const diff=Math.round((a.date-new Date(today+'T00:00:00'))/86400000);
       let lbl=a.label;
-      if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim()+' 생일':'생일');
-      if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나')+' 생일';
+      if(a.label==='생일')lbl=(partnerDoc&&partnerDoc.nickname?partnerDoc.nickname:'파트너')+' 생일';
+      else if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나')+' 생일';
       $('h-ann').style.display='inline-flex';
       $('h-ann').textContent=(a.label==='생일'?'🎂 ':'🎉 ')+lbl+' D-'+diff+' ('+fmtKDate(a.date)+')';
       $('h-ann').dataset.date=toDateStr(a.date);
@@ -1092,9 +1092,10 @@ function renderCal(){
     // 윗줄: 기념일 라벨 / 아랫줄: 첫 일정 제목
     if(hasAnn){
       const a=annByDay[ds][0];
-      let lbl=a.label;
-      if(a.label==='생일')lbl=(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일';
-      if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
+      let lbl;
+      if(a.label==='생일')lbl=(partnerDoc&&partnerDoc.nickname?partnerDoc.nickname.slice(0,2):'파트')+'생일';
+      else if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
+      else lbl=a.label;
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,4))+'</div>';
     }
     if(hasEv){
