@@ -406,15 +406,12 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <div class="dday" id="h-dday"></div>
           <div class="ann-badge" id="h-ann" onclick="goNextAnn()" style="display:none"></div>
         </div>
-        <div style="font-size:24px" id="h-emo">💕</div>
       </div>
     </header>
 
     <!-- ─ 홈 ─ -->
     <div id="pane-home" class="tabpane on">
-      <h2 class="sec"><span class="em">💌</span>우리의 기록</h2>
-      <button class="btn btn-sub" style="margin-bottom:14px" id="compose-toggle" onclick="toggleCompose()">✏️ 새 기록 쓰기</button>
-      <div class="card hidden" id="compose-card">
+      <div class="card hidden" id="compose-card" style="margin-bottom:14px">
         <h2 class="sec" style="margin-top:0"><span class="em">📝</span>새 기록 작성</h2>
         <label class="lb label-first">언제</label>
         <input type="date" id="r-date">
@@ -433,8 +430,9 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         </div>
         <button class="btn btn-pri save-btn" id="rec-save" onclick="saveRecord()">기록 저장하기</button>
       </div>
-      <h2 class="sec" style="margin-top:18px"><span class="em">💌</span>우리의 기록</h2>
+      <h2 class="sec" style="margin-top:4px"><span class="em">💌</span>우리의 기록</h2>
       <div class="feed" id="feed"></div>
+      <button class="fab" id="fab-home" onclick="toggleCompose()">＋</button>
     </div>
 
     <!-- ─ 사진 ─ -->
@@ -443,7 +441,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
       <div class="upbar" id="upbar"><div class="spinner"></div><span id="upbar-tx">업로드 중…</span></div>
       <div class="grid" id="ph-grid"></div>
       <div class="empty" id="ph-empty"><span class="em">📸</span><p>아직 사진이 없어요.<br>아래 + 버튼으로 소중한 순간을 올려보세요</p></div>
-      <button class="fab" onclick="document.getElementById('ph-file').click()">＋</button>
+      <button class="fab" id="fab-photo" onclick="document.getElementById('ph-file').click()">＋</button>
       <input type="file" id="ph-file" accept="image/*" multiple class="hidden">
     </div>
 
@@ -795,7 +793,6 @@ function renderHeader(){
   if(coupleDoc.anniversary){
     const days=Math.floor((Date.now()-new Date(coupleDoc.anniversary+'T00:00:00'))/86400000)+1;
     $('h-dday').innerHTML=days>0?'♥ 사랑한 지 <b>'+days+'일</b>':'D+'+days;
-    $('h-emo').textContent=['💕','🥰','💞','💖'][days%4];
     // 다가오는 기념일 배지
     const today=toDateStr(new Date());
     const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today,(coupleDoc.myBirthday||null));
@@ -869,7 +866,8 @@ function updateStorage(){
 function toggleCompose(){
   const c=$('compose-card');
   c.classList.toggle('hidden');
-  $('compose-toggle').textContent=c.classList.contains('hidden')?'✏️ 새 기록 쓰기':'✖ 작성 취소';
+  $('fab-home').style.transform=c.classList.contains('hidden')?'':'rotate(45deg)';
+  $('fab-home').textContent=c.classList.contains('hidden')?'＋':'✕';
   if(!c.classList.contains('hidden')){$('r-date').value=toDateStr(new Date());c.scrollIntoView({behavior:'smooth',block:'start'});}
 }
 
@@ -882,6 +880,9 @@ function goNextAnn(){
 function goTab(t){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
   $('pane-'+t).classList.add('on');
+  const fh=$('fab-home'),fp=$('fab-photo');
+  if(fh)fh.style.display=t==='home'?'flex':'none';
+  if(fp)fp.style.display=t==='photo'?'flex':'none';
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   window.scrollTo(0,0);
   if(t==='cal'){renderCal();renderDay();}
@@ -913,6 +914,7 @@ async function saveRecord(){
     $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;
     $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
     $('compose-card').classList.add('hidden');
+    $('fab-home').style.transform='';$('fab-home').textContent='＋';
     toast('기록을 저장했어요 💌');
   }catch(e){
     toast(e.code==='permission-denied'?'저장 실패: Firebase 보안규칙을 확인해 주세요':'저장에 실패했어요: '+(e.code||''));
