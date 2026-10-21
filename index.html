@@ -158,7 +158,7 @@ h2.sec .em{font-size:18px}
 .rec .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
 .rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 .chip{font-size:11.5px;background:#fdf1f3;color:#c2687c;border-radius:20px;padding:4px 10px;font-weight:500}
-.rec .rec-img{width:100%;max-height:340px;object-fit:cover;object-position:center;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
+.rec .rec-img{width:100%;height:auto;object-fit:contain;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
 .rec-heart{
   margin-top:10px;border:1.5px solid var(--line);background:#fff;border-radius:30px;
   padding:7px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--tx2);
@@ -907,7 +907,7 @@ function renderDay(){
   $('sel-title').textContent=fmtDate(selDate)+(selDate===toDateStr(new Date())?' · 오늘':'');
   const list=events.filter(e=>e.date===selDate).sort((a,b)=>a.ts-b.ts);
   $('ev-list').innerHTML=list.length?list.map(e=>
-    '<div class="ev"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
+    '<div class="ev" id="ev-'+e.id+'"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div>'+(e.createdBy===me.uid?'<button class="edel" onclick="editEvent(\''+e.id+'\')">수정</button><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button>':'')+'</div>'
   ).join(''):'<p class="tiny">등록된 일정이 없어요. 아래에서 추가해보세요 📅</p>';
   // 그 날의 기록 (피드에서 날짜가 일치하는 것)
   const recs=feedItems.filter(r=>r.date===selDate).sort((a,b)=>b.ts-a.ts);
@@ -936,6 +936,21 @@ async function addEvent(){
     });
     $('ev-title').value='';toast('일정을 추가했어요 📌');
   }catch(e){toast('추가 실패: '+(e.code||''));}
+}
+function editEvent(id){
+  const e=events.find(x=>x.id===id);if(!e)return;
+  const row=document.getElementById('ev-'+id);if(!row)return;
+  row.innerHTML='<span class="eic">✏️</span><div class="etx" style="flex:1"><input id="evin-'+id+'" value="'+esc(e.title).replace(/"/g,'&quot;')+'" maxlength="30" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveEvent(\''+id+'\')"></div>'
+    +'<button class="edel" onclick="saveEvent(\''+id+'\')">저장</button><button class="edel" onclick="renderDay()">취소</button>';
+  const inp=document.getElementById('evin-'+id);
+  inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
+}
+async function saveEvent(id){
+  const inp=document.getElementById('evin-'+id);
+  const t=(inp.value||'').trim();
+  if(!t){toast('제목을 입력해 주세요');return;}
+  await db.collection('couples').doc(coupleDoc.id).collection('events').doc(id).update({title:t});
+  toast('일정을 수정했어요 ✏️');
 }
 async function delEvent(id){
   await db.collection('couples').doc(coupleDoc.id).collection('events').doc(id).delete();
