@@ -452,9 +452,22 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
       </div>
       <div class="set-grp">
         <div class="card">
+          <h2 class="sec" style="margin:0 0 4px"><span class="em">💾</span>저장 공간</h2>
+          <div style="margin:10px 0 8px;height:10px;background:#f6eef0;border-radius:10px;overflow:hidden">
+            <div id="s-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#ff8fa3,#ff5f7e);border-radius:10px;transition:width .5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-size:13.5px;font-weight:700;color:var(--pri-d)" id="s-usage">계산 중…</span>
+            <span style="font-size:12px;color:var(--tx2)" id="s-photos"></span>
+          </div>
+          <p class="tiny" style="margin-top:8px" id="s-store-hint">무료 저장공간 1GB ≒ 압축 사진 약 3,500장. 가까워지면 앨범에서 오래된 사진을 정리해 주세요.</p>
+        </div>
+      </div>
+      <div class="set-grp">
+        <div class="card">
           <button class="btn btn-ghost" style="margin-bottom:8px" onclick="doLogout()">로그아웃</button>
           <button class="btn btn-danger" onclick="unlinkCouple()">커플 연결 해제</button>
-          <p class="tiny" style="margin-top:10px">사진은 업로드 시 자동 압축되어 저장돼요 (무료 저장공간 1GB ≒ 약 3,000장). 용량이 걱정될 땐 기존 사진을 정리해 주세요.</p>
+          <p class="tiny" style="margin-top:10px">사진은 업로드 시 자동 압축되어 저장돼요. 용량이 걱정될 땐 위 사용량을 확인하고 기존 사진을 정리해 주세요.</p>
         </div>
       </div>
     </div>
@@ -640,9 +653,9 @@ function enterApp(coupleId){
     watchPartner();
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
-  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e)));
+  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
   const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
-  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e)));
+  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
   const evs=db.collection('couples').doc(coupleId).collection('events');
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();},e=>console.error(e)));
   // 폼 초기값
@@ -692,6 +705,24 @@ async function unlinkCouple(){
   await db.collection('couples').doc(cid).delete();
 }
 
+/* ═══════════════════════════ 저장 공간 사용량 ═══════════════════════════ */
+const GB = 1024*1024*1024;
+function fmtSize(b){return b>=GB ? (b/GB).toFixed(2)+'GB' : b>=1048576 ? Math.round(b/1048576)+'MB' : Math.max(1,Math.round(b/1024))+'KB';}
+function updateStorage(){
+  if(!coupleDoc)return;
+  let total=0,count=0;
+  photoItems.forEach(p=>{total+=Math.round(p.b64.length*0.75);count++;});
+  feedItems.forEach(r=>{if(r.photoB64){total+=Math.round(r.photoB64.length*0.75);count++;}});
+  const pct=Math.min(100,total/GB*100);
+  $('s-bar').style.width=Math.max(pct,1.2)+'%';
+  $('s-usage').textContent=fmtSize(total)+' 사용 중 · 전체의 '+Math.max(pct,0.1).toFixed(1)+'%';
+  $('s-photos').textContent=count+'장';
+  const bar=$('s-bar'), hint=$('s-store-hint');
+  if(pct>=80){bar.style.background='linear-gradient(90deg,#ff9f6b,#ff5f5f)';hint.style.color='#e05555';hint.textContent='⚠️ 저장공간이 얼마 안 남았어요! 앨범에서 오래된 사진을 정리해 주세요.';}
+  else if(pct>=50){bar.style.background='linear-gradient(90deg,#ffc36b,#ff8f5f)';hint.style.color='#c77d3a';hint.textContent='저장공간이 절반을 넘었어요. 여유 있게 관리 중이에요.';}
+  else{bar.style.background='linear-gradient(90deg,#ff8fa3,#ff5f7e)';hint.style.color='';hint.textContent='무료 저장공간 1GB ≒ 압축 사진 약 3,500장. 가까워지면 앨범에서 오래된 사진을 정리해 주세요.';}
+}
+
 /* ═══════════════════════════ 탭 ═══════════════════════════ */
 function goTab(t){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
@@ -699,6 +730,7 @@ function goTab(t){
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   window.scrollTo(0,0);
   if(t==='cal'){renderCal();renderDay();}
+  if(t==='set'){updateStorage();}
 }
 
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
@@ -871,6 +903,5 @@ async function delEvent(id){
 /* ═══════════════════════════ 시작 ═══════════════════════════ */
 if(initFirebase()){authMode('login');}
 </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
