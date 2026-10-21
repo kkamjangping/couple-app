@@ -989,10 +989,17 @@ function renderPhotos(items){
 }
 let lbState=null,lbList=[];
 function buildLbList(){
-  // 앨범 사진 + 기록 사진을 시간순으로 합친 목록
-  lbList=photoItems.map(p=>({type:'ph',id:p.id,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid}))
-    .concat(feedItems.filter(r=>r.photoB64).map(r=>({type:'rec',id:r.id,img:r.photoB64,cap:(r.authorName||'')+' · '+fmtTime(r.ts),mine:r.author===me.uid})));
-  lbList.sort((a,b)=>b.cap>a.cap?-1:1);
+  // 앨범 사진 + 기록 사진을 하나의 목록으로 (중복 제거: 같은 내용의 사진은 한 번만)
+  const seen=new Set();
+  const items=[];
+  photoItems.map(p=>({type:'ph',id:p.id,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid,ts:p.ts}))
+    .concat(feedItems.filter(r=>r.photoB64).map(r=>({type:'rec',id:r.id,img:r.photoB64,cap:(r.authorName||'')+' · '+fmtTime(r.ts),mine:r.author===me.uid,ts:r.ts})))
+    .forEach(it=>{
+      const key=it.img.slice(-80); // 내용 뒷부분으로 중복 판별
+      if(!seen.has(key)){seen.add(key);items.push(it);}
+    });
+  items.sort((a,b)=>b.ts-a.ts); // 최신순
+  lbList=items;
 }
 function lbFind(key,isRec){return lbList.findIndex(x=>x.type===(isRec?'rec':'ph')&&x.id===key);}
 function lbShow(i){
