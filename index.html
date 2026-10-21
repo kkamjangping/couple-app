@@ -738,9 +738,11 @@ function anniversariesOf(annStr, pbdayStr, fromStr, mybdayStr){
   const from=new Date(fromStr+'T00:00:00');
   const out=[];
   const add=(d,lbl)=>{if(d>=from)out.push({date:d,label:lbl});};
-  // 100일 단위: 만난날 포함 N일째 => ann+N*100-1
+  // 만난 날(1일째) — 지나면 자동으로 목록에서 제외되지만 같은 날이면 표시
+  add(ann,'1일');
+  // 100일 단위: 만난날 포함 N일째 => ann+N*100-1 (2부터 시작하므로 1일과 중복 없음)
   const dayN=Math.floor((from-ann)/86400000)+1;
-  let n=Math.max(1,Math.floor(dayN/100));
+  let n=Math.max(2,Math.floor(dayN/100)+((dayN%100===0)?0:1));
   for(let i=n;i<n+8;i++)add(new Date(ann.getTime()+(i*100-1)*86400000),i*100+'일');
   // 주년
   for(let y=1;y<=5;y++){
