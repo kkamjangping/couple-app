@@ -215,6 +215,18 @@ h2.sec .em{font-size:18px}
 .cel.recday{color:var(--pri);font-weight:700}
 .cel.sel{background:#fff;border:2px solid var(--pri);color:var(--pri-d);font-weight:900;box-shadow:0 3px 10px rgba(255,95,126,.25)}
 .cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px}
+.cel .ann-dot{
+  width:5px;height:5px;border-radius:50%;background:#ffb43f;margin-top:2px;
+}
+.cel .ann-lb{
+  font-size:8px;font-weight:700;color:#d98a1f;line-height:1.1;margin-top:1px;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
+}
+.ann-badge{
+  display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.22);
+  border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700;color:#fff;
+  margin-top:5px;cursor:pointer;backdrop-filter:blur(4px);
+}
 .cel .ev-lb{
   font-size:8.5px;font-weight:700;color:var(--pri-d);line-height:1.1;margin-top:1px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
@@ -374,6 +386,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         <div style="flex:1">
           <h1 id="h-cname">우리</h1>
           <div class="dday" id="h-dday"></div>
+          <div class="ann-badge" id="h-ann" onclick="goNextAnn()" style="display:none"></div>
         </div>
         <div style="font-size:24px" id="h-emo">💕</div>
       </div>
@@ -468,6 +481,8 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <input id="s-cname" placeholder="예) 지수&민준" maxlength="16">
           <label class="lb">만난 날 (디데이)</label>
           <input type="date" id="s-anni">
+          <label class="lb">파트너 생일 (기념일 표시용)</label>
+          <input type="date" id="s-pbday">
           <button class="btn btn-sub" style="margin-top:14px" onclick="saveCouple()">커플 정보 저장</button>
         </div>
       </div>
@@ -716,6 +731,34 @@ function watchPartner(){
   if(!partnerUid)return;
   unsubs.push(db.collection('users').doc(partnerUid).onSnapshot(d=>{partnerDoc=d.exists?d.data():null;renderHeader();}));
 }
+function anniversariesOf(annStr, pbdayStr, fromStr){
+  const ann=new Date(annStr+'T00:00:00');
+  const from=new Date(fromStr+'T00:00:00');
+  const out=[];
+  const add=(d,lbl)=>{if(d>=from)out.push({date:d,label:lbl});};
+  // 100일 단위: 만난날 포함 N일째 => ann+N*100-1
+  const dayN=Math.floor((from-ann)/86400000)+1;
+  let n=Math.max(1,Math.floor(dayN/100));
+  for(let i=n;i<n+8;i++)add(new Date(ann.getTime()+(i*100-1)*86400000),i*100+'일');
+  // 주년
+  for(let y=1;y<=5;y++){
+    const d=new Date(ann);
+    d.setFullYear(ann.getFullYear()+y);
+    if(ann.getMonth()===1&&ann.getDate()===29)d.setDate(28);
+    add(d,y+'주년');
+  }
+  // 파트너 생일 (매년 반복)
+  if(pbdayStr){
+    const pb=new Date(pbdayStr+'T00:00:00');
+    for(let y=from.getFullYear()-1;y<=from.getFullYear()+1;y++){
+      const d=new Date(pb);d.setFullYear(y);
+      add(d,'생일');
+    }
+  }
+  out.sort((a,b)=>a.date-b.date);
+  return out;
+}
+function fmtKDate(d){const y=d.getFullYear();const m=d.getMonth()+1;const dd=d.getDate();return m+'월 '+dd+'일';}
 function renderHeader(){
   if(!coupleDoc)return;
   $('h-cname').textContent=coupleDoc.name||'우리 💕';
@@ -728,13 +771,28 @@ function renderHeader(){
     const days=Math.floor((Date.now()-new Date(coupleDoc.anniversary+'T00:00:00'))/86400000)+1;
     $('h-dday').innerHTML=days>0?'♥ 사랑한 지 <b>'+days+'일</b>':'D+'+days;
     $('h-emo').textContent=['💕','🥰','💞','💖'][days%4];
-  }else{$('h-dday').textContent='설정에서 만난 날을 정해보세요';}
+    // 다가오는 기념일 배지
+    const today=toDateStr(new Date());
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today);
+    if(anns.length){
+      const a=anns[0];
+      const diff=Math.round((a.date-new Date(today+'T00:00:00'))/86400000);
+      const lbl=a.label==='생일'?(coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim()+' 생일':'생일'):a.label;
+      $('h-ann').style.display='inline-flex';
+      $('h-ann').textContent=(a.label==='생일'?'🎂 ':'🎉 ')+lbl+' D-'+diff+' ('+fmtKDate(a.date)+')';
+      $('h-ann').dataset.date=toDateStr(a.date);
+    }else{$('h-ann').style.display='none';}
+  }else{
+    $('h-dday').textContent='설정에서 만난 날을 정해보세요';
+    $('h-ann').style.display='none';
+  }
   // 설정 탭
   $('s-nick').value=userDoc?.nickname||'';
   const ap=$('ava-picker');
   if(ap){ap.innerHTML=(userDoc&&userDoc.avatarB64?'<img src="'+userDoc.avatarB64+'" alt="">':'<span>📷</span><span class="hint">사진</span>')+'<input type="file" id="ava-file" accept="image/*" class="hidden">';}
   $('s-cname').value=coupleDoc.name||'';
   $('s-anni').value=coupleDoc.anniversary||'';
+  $('s-pbday').value=coupleDoc.partnerBirthday||'';
   $('s-code').textContent=userDoc?.inviteCode||'-';
   $('s-email').textContent=me.email||'-';
   $('s-partner').textContent=partnerDoc?.nickname||'-';
@@ -748,7 +806,8 @@ async function saveNick(){
 async function saveCouple(){
   await db.collection('couples').doc(coupleDoc.id).update({
     name:$('s-cname').value.trim()||null,
-    anniversary:$('s-anni').value||null
+    anniversary:$('s-anni').value||null,
+    partnerBirthday:$('s-pbday').value||null
   });
   toast('커플 정보를 저장했어요 💕');
 }
@@ -786,6 +845,11 @@ function toggleCompose(){
 }
 
 /* ═══════════════════════════ 탭 ═══════════════════════════ */
+function goNextAnn(){
+  const d=$('h-ann').dataset.date;if(!d)return;
+  selDate=d;const p=d.split('-');calY=+p[0];calM=+p[1]-1;
+  goTab('cal');
+}
 function goTab(t){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
   $('pane-'+t).classList.add('on');
@@ -932,6 +996,12 @@ function renderCal(){
   const today=toDateStr(new Date());
   const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
   const recByDay={};feedItems.forEach(r=>{(recByDay[r.date]=recByDay[r.date]||[]).push(r);});
+  let annByDay={};
+  if(coupleDoc&&coupleDoc.anniversary){
+    const first=new Date(calY,calM,1),last=new Date(calY,calM+1,0);
+    const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,toDateStr(new Date(first-86400000*200)));
+    anns.forEach(a=>{const ds=toDateStr(a.date);if(a.date>=first&&a.date<=last){(annByDay[ds]=annByDay[ds]||[]).push(a);}});
+  }
   let html='';
   ['일','월','화','수','목','금','토'].forEach((d,i)=>html+='<div class="dow'+(i===0?' sun':i===6?' sat':'')+'">'+d+'</div>');
   for(let i=0;i<off;i++)html+='<div class="cel dim"></div>';
@@ -939,8 +1009,15 @@ function renderCal(){
     const ds=calY+'-'+pad(calM+1)+'-'+pad(d);
     const cls='cel'+(ds===today?' today':'')+(ds===selDate?' sel':'');
     const hasEv=(evByDay[ds]||[]).length>0, hasRec=(recByDay[ds]||[]).length>0;
+    const hasAnn=(annByDay[ds]||[]).length>0;
     let cls2=cls+(hasRec?' recday':'');
-    let inner=d+(hasEv?'<div class="dot"></div><div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>':'');
+    let inner=d;
+    if(hasEv){inner+='<div class="dot"></div><div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';}
+    else if(hasAnn){
+      const a=annByDay[ds][0];
+      const lbl=a.label==='생일'?((coupleDoc.name&&coupleDoc.name.split(/[&×]/).length>1?(coupleDoc.name.split(/[&×]/)[1]||'').trim().slice(0,2):'')+'생일'):a.label.replace('주년','주년').slice(0,4);
+      inner+='<div class="ann-dot"></div><div class="ann-lb">'+esc(lbl)+'</div>';
+    }
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')">'+inner+'</div>';
   }
   $('cal-grid').innerHTML=html;
