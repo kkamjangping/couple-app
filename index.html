@@ -158,7 +158,7 @@ h2.sec .em{font-size:18px}
 .rec .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
 .rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 .chip{font-size:11.5px;background:#fdf1f3;color:#c2687c;border-radius:20px;padding:4px 10px;font-weight:500}
-.rec .rec-img{width:100%;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
+.rec .rec-img{width:100%;max-height:340px;object-fit:cover;object-position:center;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
 .rec-heart{
   margin-top:10px;border:1.5px solid var(--line);background:#fff;border-radius:30px;
   padding:7px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--tx2);
@@ -206,6 +206,7 @@ h2.sec .em{font-size:18px}
 .cel.sel{background:var(--pri);color:#fff;font-weight:900;box-shadow:0 3px 10px rgba(255,95,126,.4)}
 .cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px;position:absolute;bottom:5px}
 .cel.sel .dot{background:#fff}
+.cel .heart-mark{position:absolute;top:2px;right:3px;font-size:9px;line-height:1}
 .day-panel{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
 .day-panel h3{font-size:15px;font-weight:900;margin-bottom:10px}
 .ev{display:flex;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid #f8eef0}
@@ -368,8 +369,10 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 
     <!-- ─ 홈 ─ -->
     <div id="pane-home" class="tabpane on">
-      <div class="card">
-        <h2 class="sec"><span class="em">📝</span>오늘의 데이트 기록</h2>
+      <h2 class="sec"><span class="em">💌</span>우리의 기록</h2>
+      <button class="btn btn-sub" style="margin-bottom:14px" id="compose-toggle" onclick="toggleCompose()">✏️ 새 기록 쓰기</button>
+      <div class="card hidden" id="compose-card">
+        <h2 class="sec" style="margin-top:0"><span class="em">📝</span>새 기록 작성</h2>
         <label class="lb label-first">언제</label>
         <input type="date" id="r-date">
         <label class="lb">제목</label>
@@ -727,6 +730,14 @@ function updateStorage(){
   else{bar.style.background='linear-gradient(90deg,#ff8fa3,#ff5f7e)';hint.style.color='';hint.textContent='무료 저장공간 1GB ≒ 압축 사진 약 3,500장. 가까워지면 앨범에서 오래된 사진을 정리해 주세요.';}
 }
 
+/* ═══════════════════════════ 기록 작성 토글 ═══════════════════════════ */
+function toggleCompose(){
+  const c=$('compose-card');
+  c.classList.toggle('hidden');
+  $('compose-toggle').textContent=c.classList.contains('hidden')?'✏️ 새 기록 쓰기':'✖ 작성 취소';
+  if(!c.classList.contains('hidden')){$('r-date').value=toDateStr(new Date());c.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+
 /* ═══════════════════════════ 탭 ═══════════════════════════ */
 function goTab(t){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
@@ -761,6 +772,7 @@ async function saveRecord(){
     });
     $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;
     $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
+    $('compose-card').classList.add('hidden');
     toast('기록을 저장했어요 💌');
   }catch(e){
     toast(e.code==='permission-denied'?'저장 실패: Firebase 보안규칙을 확인해 주세요':'저장에 실패했어요: '+(e.code||''));
@@ -878,7 +890,7 @@ function renderCal(){
   for(let d=1;d<=dim;d++){
     const ds=calY+'-'+pad(calM+1)+'-'+pad(d);
     const cls='cel'+(ds===today?' today':'')+(ds===selDate?' sel':'');
-    html+='<div class="'+cls+'" onclick="pickDay(\''+ds+'\')">'+d+((evByDay[ds]||[]).length?'<div class="dot"></div>':'')+'</div>';
+    html+='<div class="'+cls+'" onclick="pickDay(\''+ds+'\')">'+d+(selDate===today&&ds===today?'':'')+((evByDay[ds]||[]).length?'<span class="heart-mark">❤️</span><div class="dot"></div>':'')+'</div>';
   }
   $('cal-grid').innerHTML=html;
 }
