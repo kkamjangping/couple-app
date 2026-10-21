@@ -421,8 +421,9 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
         <label class="lb">장소</label>
         <input id="r-place" placeholder="예) 여의도 한강공원" maxlength="30">
-        <label class="lb">기분</label>
-        <div class="mood-row" id="r-moods"></div>
+        <label class="lb">해시태그 (최대 5개 · Enter로 추가)</label>
+        <input id="r-tags" placeholder="#한강 #노을 #데이트" maxlength="60">
+        <div class="mood-row" id="tag-chips"></div>
         <div class="photo-pick" onclick="document.getElementById('r-file').click()">
           <span class="ic">📷</span>
           <div class="tx" id="pick-tx">사진 추가하기 (자동으로 압축돼요)</div>
@@ -430,7 +431,6 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         </div>
         <button class="btn btn-pri save-btn" id="rec-save" onclick="saveRecord()">기록 저장하기</button>
       </div>
-      <h2 class="sec" style="margin-top:4px"><span class="em">💌</span>우리의 기록</h2>
       <div class="feed" id="feed"></div>
       <button class="fab" id="fab-home" onclick="toggleCompose()">＋</button>
     </div>
@@ -740,7 +740,7 @@ function enterApp(coupleId){
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();},e=>console.error(e)));
   // 폼 초기값
   $('r-date').value=toDateStr(new Date());
-  $('r-moods').innerHTML=MOODS.map((m,i)=>'<button type="button" class="mood'+(i===0?' on':'')+'" data-i="'+i+'" onclick="pickMood(this)">'+m+'</button>').join('');
+
 }
 function watchMe(){
   unsubs.push(db.collection('users').doc(me.uid).onSnapshot(d=>{
@@ -890,6 +890,36 @@ function goTab(t){
 }
 
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
+function parseTags(s){
+  const raw=String(s||'').split(/[\s,]+/).map(x=>x.replace(/^#+/,'').trim()).filter(Boolean);
+  const seen=new Set();const out=[];
+  for(const t of raw){const k=t.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(t);}}
+  return out.slice(0,5);
+}
+function collectTags(){
+  const chips=[...document.querySelectorAll('#tag-chips .mood')].map(el=>el.dataset.tag).filter(Boolean);
+  return parseTags(chips.join(' ')+' '+($('r-tags')?$('r-tags').value:''));
+}
+function renderTagChips(tags){
+  const box=$('tag-chips');if(!box)return;
+  box.innerHTML=tags.map((t,i)=>'<button type="button" class="mood on" data-i="'+i+'" data-tag="'+esc(t)+'" onclick="removeTag(this)">#'+esc(t)+' ✕</button>').join('');
+}
+function removeTag(el){
+  const t=el.dataset.tag;
+  const rest=collectTags().filter(x=>x!==t);
+  // 남은 태그를 칩으로만 유지: 입력칸 비우고 칩 갱신
+  if($('r-tags'))$('r-tags').value='';
+  renderTagChips(rest);
+}
+document.addEventListener('keydown',e=>{
+  if(e.target&&e.target.id==='r-tags'&&e.key==='Enter'){
+    e.preventDefault();
+    const merged=parseTags([...document.querySelectorAll('#tag-chips .mood')].map(el=>el.dataset.tag).join(' ')+' '+e.target.value);
+    if(merged.length>=5)e.target.value='';
+    else e.target.value='';
+    renderTagChips(merged);
+  }
+});
 const MOODS=['💕 설렘','😊 행복','🥰 듬직','😢 아쉬움','😤 삐짐','🤗 포근'];
 let pickedPhoto=null,pickedMood=0;
 function pickMood(el){document.querySelectorAll('.mood').forEach(m=>m.classList.remove('on'));el.classList.add('on');pickedMood=+el.dataset.i;}
@@ -908,10 +938,11 @@ async function saveRecord(){
   try{
     await db.collection('couples').doc(coupleDoc.id).collection('records').add({
       author:me.uid,authorName:me.displayName||userDoc.nickname||'나',
-      date,title,body,place,mood:MOODS[pickedMood],
+      date,title,body,place,tags:collectTags(),
       photoB64:pickedPhoto||null,hearts:{},ts:Date.now()
     });
     $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;
+    $('r-tags').value='';renderTagChips([]);
     $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
     $('compose-card').classList.add('hidden');
     $('fab-home').style.transform='';$('fab-home').textContent='＋';
@@ -937,7 +968,7 @@ function renderFeed(items){
       +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(mine?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
       +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
       +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
-      +((r.place||r.mood)?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+(r.mood?'<span class="chip">'+esc(r.mood)+'</span>':'')+'</div>':'')
+      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'</div>';
@@ -1149,7 +1180,7 @@ function renderDay(){
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
-      +((r.place||r.mood)?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+(r.mood?'<span class="chip">'+esc(r.mood)+'</span>':'')+'</div>':'')
+      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'</div>';
