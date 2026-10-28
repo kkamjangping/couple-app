@@ -54,7 +54,7 @@ input,textarea,select{
   transition:border .15s;letter-spacing:-.02em;
 }
 input:focus,textarea:focus{border-color:var(--pri)}
-textarea{min-height:110px;resize:vertical;resize:vertical;min-height:90px}
+textarea{resize:vertical;min-height:90px}
 label.lb{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
 .label-first{margin-top:0!important}
 .tiny{font-size:12px;color:var(--tx2);line-height:1.6}
@@ -164,7 +164,7 @@ h2.sec .em{font-size:18px}
 .rec-who span{display:block;font-size:11.5px;color:var(--tx2)}
 .rec-del{border:none;background:none;font-size:12px;color:#d49aa6;cursor:pointer;font-family:inherit;padding:4px}
 .rec h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
-.rec .txt,.day-panel .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
+.rec .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
 .rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 .chip{font-size:11.5px;background:#fdf1f3;color:#c2687c;border-radius:20px;padding:4px 10px;font-weight:500}
 .rec .rec-img{width:100%;height:auto;object-fit:contain;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
@@ -260,7 +260,7 @@ h2.sec .em{font-size:18px}
 .idea .itx{flex:1;min-width:0}
 .idea .itx b{font-size:14px;display:block}
 .idea.done .itx b{text-decoration:line-through;color:#c9a9b2}
-.idea .itx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5;white-space:pre-wrap;word-break:keep-all}
+.idea .itx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
 .idea.done .itx span{text-decoration:line-through;color:#dcc3ca}
 .idea .iwho{font-size:11px;color:#c9a9b2;margin-top:2px;display:block}
 .idea-add{display:flex;gap:8px;margin-top:12px}
@@ -535,7 +535,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         <label class="lb">제목</label>
         <input id="r-title" placeholder="예) 한강 피크닉 🧺" maxlength="40">
         <label class="lb">내용</label>
-        <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?&#10;(Enter로 줄바꿈 가능 · 저장한 줄바꿈 그대로 보여요)"></textarea>
+        <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
         <label class="lb">장소</label>
         <div class="place-wrap">
           <input id="r-place" placeholder="예) 여의도 한강공원 · 두 글자부터 검색" maxlength="30" autocomplete="off" oninput="placeSearch()">
@@ -607,7 +607,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="40" onkeydown="if(event.key==='Enter')addIdea()">
           <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
         </div>
-        <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기&#10;(Enter로 줄바꿈 가능)" maxlength="200" style="margin-top:8px;width:100%;min-height:64px"></textarea>
+        <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="60" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
       </div>
     </div>
     <div id="pane-set" class="tabpane">
@@ -1580,7 +1580,7 @@ function editIdea(id){
   const el=$('idea-'+id);if(!el)return;
   el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
     +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="40" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
-    +'<textarea id="idea-mm-'+id+'" maxlength="200" placeholder="메모 (선택) · Enter 줄바꿈" style="padding:8px 10px;font-size:12.5px;min-height:56px">'+esc(i.memo||'')+'</textarea>'
+    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="60" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
     +'<div style="display:flex;gap:6px"><button class="cmt-save" onclick="saveIdea(\''+id+'\')">저장</button><button class="cmt-cancel" onclick="renderIdeas()">취소</button></div></div>';
   const inp=$('idea-in-'+id);if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
 }
