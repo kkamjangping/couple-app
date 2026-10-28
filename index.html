@@ -54,7 +54,7 @@ input,textarea,select{
   transition:border .15s;letter-spacing:-.02em;
 }
 input:focus,textarea:focus{border-color:var(--pri)}
-textarea{resize:vertical;min-height:90px}
+textarea{min-height:110px;resize:vertical;resize:vertical;min-height:90px}
 label.lb{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
 .label-first{margin-top:0!important}
 .tiny{font-size:12px;color:var(--tx2);line-height:1.6}
@@ -164,7 +164,7 @@ h2.sec .em{font-size:18px}
 .rec-who span{display:block;font-size:11.5px;color:var(--tx2)}
 .rec-del{border:none;background:none;font-size:12px;color:#d49aa6;cursor:pointer;font-family:inherit;padding:4px}
 .rec h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
-.rec .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
+.rec .txt,.day-panel .txt{font-size:14px;line-height:1.65;color:#5d4d54;white-space:pre-wrap;word-break:keep-all}
 .rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 .chip{font-size:11.5px;background:#fdf1f3;color:#c2687c;border-radius:20px;padding:4px 10px;font-weight:500}
 .rec .rec-img{width:100%;height:auto;object-fit:contain;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
@@ -535,7 +535,7 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         <label class="lb">제목</label>
         <input id="r-title" placeholder="예) 한강 피크닉 🧺" maxlength="40">
         <label class="lb">내용</label>
-        <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
+        <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?&#10;(Enter로 줄바꿈 가능 · 저장한 줄바꿈 그대로 보여요)"></textarea>
         <label class="lb">장소</label>
         <div class="place-wrap">
           <input id="r-place" placeholder="예) 여의도 한강공원 · 두 글자부터 검색" maxlength="30" autocomplete="off" oninput="placeSearch()">
@@ -1391,8 +1391,12 @@ function renderDay(){
   // 그 날의 기록 (피드에서 날짜가 일치하는 것)
   const recs=feedItems.filter(r=>r.date===selDate).sort((a,b)=>b.ts-a.ts);
   const panel=$('day-records-panel');
-  if(!recs.length){panel.classList.add('hidden');return;}
   panel.classList.remove('hidden');
+  if(!recs.length){
+    $('day-rec-title').textContent='💌 그 날의 기록';
+    $('day-rec-list').innerHTML='<p class="tiny" style="margin:4px 0 2px">이 날의 기록이 아직 없어요. 홈 탭에서 날짜를 골라 기록을 남겨보세요 📝</p>';
+    return;
+  }
   $('day-rec-title').textContent='💌 그 날의 기록 · '+recs.length+'개';
   $('day-rec-list').innerHTML=recs.map(r=>{
     const heartN=Object.keys(r.hearts||{}).length;
