@@ -249,6 +249,54 @@ h2.sec .em{font-size:18px}
 .ev .etx b{font-size:14px}
 .ev .etx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
 .ev .edel{border:none;background:none;color:#d49aa6;font-size:12px;cursor:pointer;font-family:inherit;padding:2px}
+/* ═══════════════════════════ 아이디어 ═══════════════════════════ */
+.idea{display:flex;align-items:flex-start;gap:10px;padding:11px 2px;border-bottom:1px solid #f8eef0}
+.idea:last-child{border-bottom:none}
+.idea .ick{
+  width:22px;height:22px;border-radius:7px;border:2px solid #f0b9c4;background:#fff;flex:none;margin-top:2px;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff;padding:0;line-height:1;font-family:inherit;
+}
+.idea .ick.on{background:var(--pri);border-color:var(--pri)}
+.idea .itx{flex:1;min-width:0}
+.idea .itx b{font-size:14px;display:block}
+.idea.done .itx b{text-decoration:line-through;color:#c9a9b2}
+.idea .itx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
+.idea.done .itx span{text-decoration:line-through;color:#dcc3ca}
+.idea .iwho{font-size:11px;color:#c9a9b2;margin-top:2px;display:block}
+.idea-add{display:flex;gap:8px;margin-top:12px}
+/* ═══════════════════════════ 통계 ═══════════════════════════ */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
+.stat-cell{background:#fff5f7;border-radius:12px;padding:10px 6px;text-align:center}
+.stat-cell b{display:block;font-size:19px;color:#e8556d;font-weight:900}
+.stat-cell span{font-size:11px;color:var(--tx2)}
+.tag-top{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag-top .chip{font-size:12.5px}
+/* ═══════════════════════════ 지도 ═══════════════════════════ */
+#the-map{height:430px;border-radius:14px;overflow:hidden;z-index:0;border:1px solid #f8e3e7}
+.leaflet-tile-pane{filter:saturate(.68) brightness(1.07) contrast(.9) sepia(.06) hue-rotate(-8deg)}
+.map-pin{background:none;border:none;width:30px;height:30px;position:relative}
+.map-pin .pb{
+  width:30px;height:30px;border-radius:50% 50% 50% 50%/42% 42% 58% 58%;
+  background:linear-gradient(135deg,#ff9fb0,#ff5f7e);border:2.5px solid #fff;
+  box-shadow:0 3px 6px rgba(232,85,109,.4);display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;line-height:1;font-weight:900;
+}
+.map-pin .pt{
+  position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:#ff5f7e;
+  transform:translateX(-50%) rotate(45deg);border-radius:0 0 2px 0;
+}
+.map-pin:hover .pb{transform:scale(1.12);transition:transform .15s}
+.leaflet-popup-content-wrapper{background:#fff7f8;border:2px solid #ffd0da;color:#5d4d54}
+.leaflet-popup-tip{background:#fff7f8;border:2px solid #ffd0da}
+.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.leaflet-popup-content{margin:10px 12px;line-height:1.5}
+.place-wrap{position:relative}
+#place-dd{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.10);z-index:70;max-height:190px;overflow-y:auto}
+#place-dd.on{display:block}
+.pdd-item{padding:10px 12px;font-size:13px;border-bottom:1px solid #f6eef0;cursor:pointer;line-height:1.45}
+.pdd-item:last-child{border-bottom:none}
+.pdd-item:hover{background:#fff3f5}
+#place-hint{display:none;font-size:11.5px;color:#e8556d;margin-top:4px;font-weight:700}
 
 /* ---------- 설정 ---------- */
 .set-grp{margin-bottom:14px}
@@ -279,6 +327,41 @@ nav.tabs button.on{color:var(--pri-d)}
 nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 
 /* ---------- 라이트박스 ---------- */
+/* ═══════════════════════════ 채팅 ═══════════════════════════ */
+.chat-btn{
+  position:relative;flex:none;width:40px;height:40px;border-radius:13px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.25);color:#fff;font-size:19px;display:flex;align-items:center;justify-content:center;font-family:inherit;
+}
+.chat-btn:active{background:rgba(255,255,255,.4)}
+.chat-badge{
+  position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  background:#ff3b5c;color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  border:2px solid #ffd3dc;
+}
+#chat-view{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:#fdf3f5}
+#chat-view.on{display:flex}
+.chat-head{
+  flex:none;display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));
+  background:linear-gradient(135deg,#ff9fb0,#ff7d94);color:#fff;box-shadow:0 2px 8px rgba(232,85,109,.18);
+}
+.chat-head b{font-size:16px;flex:1}
+.chat-back{border:none;background:rgba(255,255,255,.25);color:#fff;width:34px;height:34px;border-radius:11px;font-size:16px;cursor:pointer;flex:none;font-family:inherit}
+#chat-body{flex:1;overflow-y:auto;padding:14px 12px 8px;display:flex;flex-direction:column;gap:6px}
+.chat-date{text-align:center;font-size:11px;color:#c58f9c;font-weight:700;margin:8px 0 2px}
+.chat-row{display:flex;gap:6px;align-items:flex-end;max-width:86%}
+.chat-row.mine{align-self:flex-end;flex-direction:row-reverse}
+.chat-ava{width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;margin-bottom:16px}
+.chat-wrap{display:flex;flex-direction:column;gap:2px}
+.chat-name{font-size:10.5px;color:#b98a96;margin-left:4px}
+.chat-bub{padding:9px 13px;border-radius:16px;font-size:14px;line-height:1.5;word-break:keep-all;background:#fff;color:#4a3a40;border-bottom-left-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.05);align-self:flex-start}
+.chat-row.mine .chat-bub{background:var(--pri);color:#fff;border-radius:16px;border-bottom-right-radius:5px;box-shadow:none}
+.chat-meta{font-size:10px;color:#c9a4ae;display:flex;gap:6px;align-items:center}
+.chat-meta .cdx{border:none;background:none;color:#e2b6c0;font-size:11px;cursor:pointer;padding:0;font-family:inherit}
+.chat-foot{flex:none;display:flex;gap:8px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #f8e3e7}
+#chat-in{flex:1;padding:11px 14px;font-size:14px;border-radius:22px}
+.chat-send{border:none;background:var(--pri);color:#fff;border-radius:50%;width:42px;height:42px;font-size:17px;cursor:pointer;flex:none;font-family:inherit;font-weight:900}
+.chat-empty{text-align:center;color:#c9a4ae;font-size:13px;margin:auto 0;line-height:1.8}
+.chat-empty b{font-size:26px;display:block;margin-bottom:6px}
 #lightbox{
   display:none;position:fixed;inset:0;z-index:100;background:rgba(20,8,12,.94);
   align-items:center;justify-content:center;flex-direction:column;padding:20px;
@@ -321,6 +404,10 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 .cmt .cb b{font-size:12px}
 .cmt .cb .ct{font-size:13px;line-height:1.5;color:#5d4d54;word-break:keep-all}
 .cmt .cdel{border:none;background:none;color:#d49aa6;font-size:11px;cursor:pointer;font-family:inherit;padding:2px;flex:none}
+.cmt .cedit{border:none;background:none;color:#b9a0a9;font-size:11px;cursor:pointer;font-family:inherit;padding:2px;flex:none}
+.cmt .cbox{display:flex;gap:2px;flex:none}
+.cmt-save{border:none;background:var(--pri);color:#fff;border-radius:9px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;flex:none;font-family:inherit}
+.cmt-cancel{border:1.5px solid var(--line);background:#fff;color:var(--tx2);border-radius:9px;padding:7px 12px;font-size:12.5px;cursor:pointer;flex:none;font-family:inherit}
 .cmt-form{display:flex;gap:6px;margin-top:8px}
 .cmt-form input{flex:1;padding:9px 12px;font-size:13.5px;border-radius:11px}
 .cmt-form button{border:none;background:var(--pri);color:#fff;border-radius:11px;padding:0 14px;font-size:13.5px;font-weight:700;cursor:pointer;flex:none;font-family:inherit}
@@ -330,6 +417,8 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
   margin-left:6px;font-weight:500;
 }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id="shell">
@@ -422,8 +511,20 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
           <div class="dday" id="h-dday"></div>
           <div class="ann-badge" id="h-ann" onclick="goNextAnn()" style="display:none"></div>
         </div>
+        <button class="chat-btn" onclick="openChat()" aria-label="채팅">💬<span class="chat-badge" id="chat-badge" style="display:none"></span></button>
       </div>
     </header>
+    <div id="chat-view">
+      <div class="chat-head">
+        <button class="chat-back" onclick="closeChat()">‹</button>
+        <b>💬 우리의 대화</b>
+      </div>
+      <div id="chat-body"></div>
+      <div class="chat-foot">
+        <input id="chat-in" placeholder="메시지 입력…" maxlength="300" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
 
     <!-- ─ 홈 ─ -->
     <div id="pane-home" class="tabpane on">
@@ -436,7 +537,11 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
         <label class="lb">내용</label>
         <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
         <label class="lb">장소</label>
-        <input id="r-place" placeholder="예) 여의도 한강공원" maxlength="30">
+        <div class="place-wrap">
+          <input id="r-place" placeholder="예) 여의도 한강공원 · 두 글자부터 검색" maxlength="30" autocomplete="off" oninput="placeSearch()">
+          <div id="place-dd"></div>
+        </div>
+        <div id="place-hint" onclick="clearPicked()">📍 지도 위치로 기록될 거예요 · 눌러서 해제</div>
         <label class="lb">해시태그 (최대 5개 · Enter로 추가)</label>
         <input id="r-tags" placeholder="#한강 #노을 #데이트" maxlength="60">
         <div class="mood-row" id="tag-chips"></div>
@@ -486,8 +591,40 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
     </div>
 
     <!-- ─ 설정 ─ -->
+    <div id="pane-map" class="tabpane">
+      <div class="card">
+        <h2 class="sec" style="margin:0 0 4px"><span class="em">🗺️</span>데이트 지도</h2>
+        <p class="tiny" id="map-count" style="margin:0 0 8px"></p>
+        <div id="the-map"></div>
+      </div>
+    </div>
+    <div id="pane-idea" class="tabpane">
+      <div class="card">
+        <h2 class="sec" style="margin:0 0 4px"><span class="em">💡</span>데이트 아이디어</h2>
+        <p class="tiny" style="margin:0 0 6px">하고 싶은 데이트를 미리 적어두고, 다녀오면 체크! 완료된 건 아래로 내려가요.</p>
+        <div id="idea-list"></div>
+        <div class="idea-add">
+          <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="40" onkeydown="if(event.key==='Enter')addIdea()">
+          <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
+        </div>
+        <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="60" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
+      </div>
+    </div>
     <div id="pane-set" class="tabpane">
       <div class="set-grp">
+        <div class="card">
+          <h2 class="sec" style="margin:0 0 4px"><span class="em">📈</span>우리는 지금</h2>
+          <div class="stat-grid">
+            <div class="stat-cell"><b id="st-days">-</b><span>만난 날</span></div>
+            <div class="stat-cell"><b id="st-dates">-</b><span>데이트 횟수</span></div>
+            <div class="stat-cell"><b id="st-recs">-</b><span>기록</span></div>
+            <div class="stat-cell"><b id="st-photos">-</b><span>사진</span></div>
+            <div class="stat-cell"><b id="st-comments">-</b><span>댓글</span></div>
+            <div class="stat-cell"><b id="st-hearts">-</b><span>하트</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:800;color:var(--tx2);margin-top:10px">🏷️ 해시태그 TOP5</div>
+          <div class="tag-top" id="st-tags"><span class="tiny">아직 태그가 없어요</span></div>
+        </div>
         <div class="card">
           <h2 class="sec" style="margin:0 0 4px"><span class="em">👤</span>프로필</h2>
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
@@ -553,6 +690,8 @@ nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
       <button class="on" data-tab="home" onclick="goTab('home')"><span class="em">🏠</span>홈</button>
       <button data-tab="photo" onclick="goTab('photo')"><span class="em">📷</span>사진</button>
       <button data-tab="cal" onclick="goTab('cal')"><span class="em">📅</span>일정</button>
+      <button data-tab="map" onclick="goTab('map')"><span class="em">🗺️</span>지도</button>
+      <button data-tab="idea" onclick="goTab('idea')"><span class="em">💡</span>아이디어</button>
       <button data-tab="set" onclick="goTab('set')"><span class="em">⚙️</span>설정</button>
     </nav>
   </div>
@@ -749,11 +888,19 @@ function enterApp(coupleId){
     watchPartner();
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
-  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
+  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();renderMap();},e=>console.error(e)));
   const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
   unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
   const evs=db.collection('couples').doc(coupleId).collection('events');
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();},e=>console.error(e)));
+  const ids=db.collection('couples').doc(coupleId).collection('ideas');
+  unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();},e=>console.error(e)));
+  const cht=db.collection('couples').doc(coupleId).collection('chat');
+  unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
+    chats=s.docs.map(d=>({id:d.id,...d.data()}));
+    renderChat();updateChatBadge();
+    if($('chat-view').classList.contains('on')){chatSeen=Date.now();localStorage.setItem('pc-chat-seen',chatSeen);updateChatBadge();}
+  },e=>console.error(e)));
   // 폼 초기값
   $('r-date').value=toDateStr(new Date());
 
@@ -903,6 +1050,9 @@ function goTab(t){
   window.scrollTo(0,0);
   if(t==='cal'){renderCal();renderDay();}
   if(t==='set'){updateStorage();}
+  if(t==='idea'){renderIdeas();}
+  if(t==='map'){initMap();renderMap();setTimeout(()=>{if(lmap)lmap.invalidateSize();},80);}
+  if(t==='set'){renderStats();}
 }
 
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
@@ -955,9 +1105,10 @@ async function saveRecord(){
     await db.collection('couples').doc(coupleDoc.id).collection('records').add({
       author:me.uid,authorName:me.displayName||userDoc.nickname||'나',
       date,title,body,place,tags:collectTags(),
+      lat:pickedPlace?pickedPlace.lat:null,lng:pickedPlace?pickedPlace.lng:null,
       photoB64:pickedPhoto||null,hearts:{},ts:Date.now()
     });
-    $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;
+    $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;pickedPlace=null;$('place-hint').style.display='none';
     $('r-tags').value='';renderTagChips([]);
     $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
     $('compose-card').classList.add('hidden');
@@ -985,7 +1136,7 @@ function renderFeed(items){
       +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(mine?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
       +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
       +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
-      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
+      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
@@ -996,8 +1147,8 @@ function renderFeed(items){
 function renderComments(r){
   const list=(r.comments||[]);
   const rows=list.map(c=>
-    '<div class="cmt"><div class="rec-ava">'+esc((c.name||'?')[0])+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b><div class="ct">'+esc(c.text||'')+'</div></div>'
-    +(c.uid===me.uid?'<button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button>':'')+'</div>'
+    '<div class="cmt" id="cmt-'+r.id+'-'+c.id+'"><div class="rec-ava">'+esc((c.name||'?')[0])+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b>'+(c.edited?'<span style="font-size:10px;color:#c9a9b2"> · 수정됨</span>':'')+'<div class="ct">'+esc(c.text||'')+'</div></div>'
+    +(c.uid===me.uid?'<span class="cbox"><button class="cedit" onclick="editComment(\''+r.id+'\',\''+c.id+'\')">수정</button><button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button></span>':'')+'</div>'
   ).join('');
   return '<div class="cmt-list" id="cmts-'+r.id+'">'+rows+'</div>'
     +'<div class="cmt-form"><input id="cin-'+r.id+'" placeholder="한마디 남기기…" maxlength="80" onkeydown="if(event.key===\'Enter\')addComment(\''+r.id+'\')">'
@@ -1022,6 +1173,27 @@ async function delComment(rid,cid){
     .update({comments:arr});
   toast('삭제했어요');
 }
+function editComment(rid,cid){
+  const r=feedItems.find(x=>x.id===rid);if(!r)return;
+  const c=(r.comments||[]).find(x=>x.id===cid);if(!c)return;
+  const el=document.getElementById('cmt-'+rid+'-'+cid);if(!el)return;
+  el.innerHTML='<div style="display:flex;gap:6px;width:100%"><input id="cein-'+cid+'" value="'+esc(c.text||'').replace(/"/g,'&quot;')+'" maxlength="80" style="flex:1;min-width:0;padding:8px 11px;font-size:13px;border-radius:10px" onkeydown="if(event.key===\'Enter\')saveComment(\''+rid+'\',\''+cid+'\')">'
+    +'<button class="cmt-save" onclick="saveComment(\''+rid+'\',\''+cid+'\')">저장</button>'
+    +'<button class="cmt-cancel" onclick="cancelEdit(\''+rid+'\')">취소</button></div>';
+  const inp=document.getElementById('cein-'+cid);
+  if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
+}
+async function saveComment(rid,cid){
+  const inp=document.getElementById('cein-'+cid);
+  const t=((inp&&inp.value)||'').trim();
+  if(!t){toast('내용을 입력해 주세요');return;}
+  const r=feedItems.find(x=>x.id===rid);if(!r)return;
+  const arr=(r.comments||[]).map(c=>c.id===cid?Object.assign({},c,{text:t,edited:true}):c);
+  await db.collection('couples').doc(coupleDoc.id).collection('records').doc(rid)
+    .update({comments:arr});
+  toast('수정했어요 ✏️');
+}
+function cancelEdit(rid){rerenderFeed();}
 async function toggleHeart(id){
   const r=feedItems.find(x=>x.id===id);if(!r)return;
   const cur=!!(r.hearts||{})[me.uid];
@@ -1138,7 +1310,8 @@ async function lbDelete(){
 }
 
 /* ═══════════════════════════ 일정 ═══════════════════════════ */
-let events=[],calY=new Date().getFullYear(),calM=new Date().getMonth(),selDate=toDateStr(new Date());
+let events=[],ideas=[],chats=[],pickedPlace=null,calY=new Date().getFullYear(),calM=new Date().getMonth(),selDate=toDateStr(new Date());
+let chatSeen=+(localStorage.getItem('pc-chat-seen')||0);
 function calMove(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();renderDay();}
 function renderCal(){
   $('cal-title').textContent=calY+'년 '+(calM+1)+'월';
@@ -1229,13 +1402,198 @@ function renderDay(){
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
-      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?'<span class="chip">📍 '+esc(r.place)+'</span>':'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
+      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#e8556d">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
       +renderComments(r)
       +'</div>';
   }).join('');
+}
+function renderStats(){
+  if(!$('st-days')||!coupleDoc)return;
+  // 만난 날 (D+)
+  let days=0;
+  if(coupleDoc.anniversary){
+    const d=new Date(coupleDoc.anniversary+'T00:00:00');
+    days=Math.floor((Date.now()-d.getTime())/86400000)+1;
+  }
+  $('st-days').textContent=days>0?('D+'+days):(days===0?'오늘':'D'+days);
+  // 데이트 횟수 = 일정이 들어간 날의 개수 (고유 날짜)
+  const dates=new Set(events.map(e=>e.date).filter(Boolean));
+  $('st-dates').textContent=dates.size;
+  $('st-recs').textContent=feedItems.length;
+  const pN=photoItems.length+feedItems.filter(r=>r.photoB64).length;
+  $('st-photos').textContent=pN;
+  let cN=0,hN=0;const tagMap={};
+  feedItems.forEach(r=>{
+    cN+=(r.comments||[]).length;
+    hN+=Object.keys(r.hearts||{}).length;
+    (r.tags||[]).forEach(t=>{tagMap[t]=(tagMap[t]||0)+1;});
+  });
+  $('st-comments').textContent=cN;
+  $('st-hearts').textContent=hN;
+  const top=Object.entries(tagMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('st-tags').innerHTML=top.length
+    ?top.map(([t,n])=>'<span class="chip" style="color:#e8556d">#'+esc(t)+' <b>'+n+'</b></span>').join('')
+    :'<span class="tiny">아직 태그가 없어요</span>';
+}
+let lmap=null,mapInited=false,mapFitDone=false,recMarkers={},placeTimer=null;
+function placeSearch(){
+  const q=$('r-place').value.trim();
+  pickedPlace=null;$('place-hint').style.display='none';
+  const box=$('place-dd');
+  clearTimeout(placeTimer);
+  if(q.length<2){box.classList.remove('on');box.innerHTML='';return;}
+  placeTimer=setTimeout(async()=>{
+    try{
+      const res=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=ko&limit=5&q='+encodeURIComponent(q));
+      const list=await res.json();
+      if(!list.length){box.innerHTML='<div class="pdd-item" style="color:#b98a96">검색 결과가 없어요</div>';box.classList.add('on');return;}
+      box.innerHTML=list.map(it=>'<div class="pdd-item" onclick="pickPlace('+it.lat+','+it.lon+',this)" data-n="'+esc(it.display_name)+'">'+esc(it.display_name)+'</div>').join('');
+      box.classList.add('on');
+    }catch(e){box.classList.remove('on');}
+  },400);
+}
+function pickPlace(lat,lon,el){
+  pickedPlace={lat:lat,lng:lon,name:el.dataset.n||''};
+  const nm=pickedPlace.name;
+  $('r-place').value=nm.length>24?nm.slice(0,24)+'…':nm;
+  $('place-hint').style.display='block';
+  $('place-dd').classList.remove('on');
+}
+function clearPicked(){
+  pickedPlace=null;$('place-hint').style.display='none';
+  toast('장소를 다시 검색해 선택해 주세요');
+}
+document.addEventListener('click',e=>{
+  const box=$('place-dd');
+  if(box&&!box.contains(e.target)&&e.target.id!=='r-place')box.classList.remove('on');
+});
+function initMap(){
+  if(mapInited||!window.L)return;
+  mapInited=true;
+  lmap=L.map('the-map',{zoomControl:false}).setView([36.4,127.9],7);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'&copy; Esri, OpenStreetMap 기여자'}).addTo(lmap);
+  L.control.zoom({position:'bottomright'}).addTo(lmap);
+}
+function renderMap(){
+  if(!mapInited)return;
+  const pts=feedItems.filter(r=>r.lat);
+  Object.keys(recMarkers).forEach(k=>{recMarkers[k].remove();delete recMarkers[k];});
+  pts.forEach(r=>{
+    const m=L.marker([r.lat,r.lng],{icon:L.divIcon({className:'map-pin',html:'<div class="pb">♥</div><div class="pt"></div>',iconSize:[30,34],iconAnchor:[15,32]})}).addTo(lmap);
+    m.bindPopup('<div style="min-width:150px">'
+      +(r.photoB64?'<img src="'+r.photoB64+'" style="width:100%;border-radius:10px;cursor:pointer" onclick="openLb(\''+r.id+'\',true)">':'')
+      +'<b style="font-size:13.5px;display:block;margin-top:4px;color:#e8556d">'+esc(r.title||'기록')+'</b>'
+      +'<span style="font-size:11px;color:#999">'+fmtDate(r.date)+(r.place?' · 📍'+esc(r.place):'')+'</span></div>');
+    recMarkers[r.id]=m;
+  });
+  const c=$('map-count');
+  c.textContent=pts.length?'우리가 다녀온 곳 '+pts.length+'곳 · 핀을 눌러 기록을 보세요':'아직 지도에 표시된 기록이 없어요. 기록 쓸 때 장소를 검색해서 선택해보세요!';
+  if(pts.length&&!mapFitDone){mapFitDone=true;lmap.fitBounds(L.latLngBounds(pts.map(r=>[r.lat,r.lng])).pad(0.3),{maxZoom:14});}
+}
+function flyToRec(id){
+  const m=recMarkers[id];if(!m){toast('지도를 불러오는 중이에요');return;}
+  lmap.flyTo(m.getLatLng(),15,{duration:.6});
+  setTimeout(()=>m.openPopup(),700);
+}
+function updateChatBadge(){
+  const b=$('chat-badge');if(!b)return;
+  const n=chats.filter(m=>m.uid!==me.uid&&m.ts>chatSeen).length;
+  if(n>0){b.style.display='flex';b.textContent=n>99?'99+':n;}else{b.style.display='none';}
+}
+function openChat(){
+  $('chat-view').classList.add('on');
+  chatSeen=Date.now();localStorage.setItem('pc-chat-seen',chatSeen);
+  updateChatBadge();renderChat();
+  setTimeout(()=>{const i=$('chat-in');if(i)i.focus();},80);
+}
+function closeChat(){$('chat-view').classList.remove('on');}
+function renderChat(){
+  const box=$('chat-body');if(!box)return;
+  if(!chats.length){
+    box.innerHTML='<div class="chat-empty"><b>💬</b>아직 대화가 없어요.<br>연인과의 대화를 시작해보세요!</div>';
+    return;
+  }
+  let lastDate='';let out='';
+  chats.forEach(m=>{
+    const d=m.ts?toDateStr(new Date(m.ts)):'';
+    if(d&&d!==lastDate){out+='<div class="chat-date">'+fmtDate(d)+'</div>';lastDate=d;}
+    const mine=m.uid===me.uid;
+    out+='<div class="chat-row'+(mine?' mine':'')+'">'
+      +(mine?'':'<div class="chat-ava">'+esc((m.name||'?')[0])+'</div>')
+      +'<div class="chat-wrap">'+(mine?'':'<div class="chat-name">'+esc(m.name||'?')+'</div>')
+      +'<div class="chat-bub">'+esc(m.text||'').replace(/\n/g,'<br>')+'</div>'
+      +'<div class="chat-meta">'+(mine?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
+      +'</div></div>';
+  });
+  const stick=box.scrollHeight-box.scrollTop<80||box.scrollTop===0;
+  box.innerHTML=out;
+  if(stick)box.scrollTop=box.scrollHeight;
+}
+async function sendMsg(){
+  const inp=$('chat-in');const t=(inp.value||'').trim();
+  if(!t){toast('메시지를 입력해 주세요');return;}
+  try{
+    await db.collection('couples').doc(coupleDoc.id).collection('chat').add({
+      uid:me.uid,name:me.displayName||userDoc.nickname||'나',text:t,ts:Date.now()
+    });
+    inp.value='';
+  }catch(e){toast('전송 실패: '+(e.code||''));}
+}
+async function delMsg(id){
+  const m=chats.find(x=>x.id===id);if(!m||m.uid!==me.uid)return;
+  if(!confirm('이 메시지를 삭제할까요?'))return;
+  await db.collection('couples').doc(coupleDoc.id).collection('chat').doc(id).delete();
+}
+function renderIdeas(){
+  const box=$('idea-list');if(!box)return;
+  const open=ideas.filter(i=>!i.done).sort((a,b)=>b.ts-a.ts);
+  const done=ideas.filter(i=>i.done).sort((a,b)=>(b.doneTs||b.ts)-(a.doneTs||a.ts));
+  const row=i=>
+    '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
+    +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
+    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span>'+esc(i.memo)+'</span>':'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
+    +(i.createdBy===me.uid?'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>':'')
+    +'</div>';
+  box.innerHTML=(open.length?open.map(row).join(''):'<p class="tiny" style="margin:4px 0 8px">아직 아이디어가 없어요. 아래에서 추가해보세요 💡</p>')
+    +(done.length?'<div style="margin:10px 0 2px;font-size:12px;font-weight:800;color:var(--tx2)">✅ 완료 · '+done.length+'개</div>'+done.map(row).join(''):'');
+}
+async function addIdea(){
+  const t=$('idea-title').value.trim();if(!t){toast('아이디어를 입력해 주세요');return;}
+  try{
+    await db.collection('couples').doc(coupleDoc.id).collection('ideas').add({
+      title:t,memo:$('idea-memo').value.trim(),done:false,createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now()
+    });
+    $('idea-title').value='';$('idea-memo').value='';toast('아이디어를 추가했어요 💡');
+  }catch(e){toast('추가 실패: '+(e.code||''));}
+}
+async function toggleIdea(id){
+  const i=ideas.find(x=>x.id===id);if(!i)return;
+  await db.collection('couples').doc(coupleDoc.id).collection('ideas').doc(id)
+    .update({done:!i.done,doneTs:!i.done?Date.now():null});
+  if(!i.done)toast('완료! 멋진 데이트였네요 🎉');
+}
+function editIdea(id){
+  const i=ideas.find(x=>x.id===id);if(!i)return;
+  const el=$('idea-'+id);if(!el)return;
+  el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
+    +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="40" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
+    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="60" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
+    +'<div style="display:flex;gap:6px"><button class="cmt-save" onclick="saveIdea(\''+id+'\')">저장</button><button class="cmt-cancel" onclick="renderIdeas()">취소</button></div></div>';
+  const inp=$('idea-in-'+id);if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
+}
+async function saveIdea(id){
+  const t=$('idea-in-'+id).value.trim();if(!t){toast('내용을 입력해 주세요');return;}
+  await db.collection('couples').doc(coupleDoc.id).collection('ideas').doc(id)
+    .update({title:t,memo:$('idea-mm-'+id).value.trim()});
+  toast('수정했어요 ✏️');
+}
+async function delIdea(id){
+  if(!confirm('이 아이디어를 삭제할까요?'))return;
+  await db.collection('couples').doc(coupleDoc.id).collection('ideas').doc(id).delete();
+  toast('삭제했어요');
 }
 async function addEvent(){
   const t=$('ev-title').value.trim();if(!t){toast('일정 제목을 입력해 주세요');return;}
