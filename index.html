@@ -1412,7 +1412,7 @@ function renderCal(){
       }
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,7))+'</div>';
     }
-    evs.slice(0,2).forEach(e=>{
+    (hasAnn?evs.slice(0,2):evs.slice(0,3)).forEach(e=>{
       inner+='<div class="ev-lb">'+esc((e.title||'').replace(/\s/g,'').slice(0,7))+'</div>';
     });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
