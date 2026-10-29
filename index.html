@@ -209,10 +209,11 @@ h2.sec .em{font-size:18px}
 .cal-grid{grid-auto-rows:74px}
 .cel{
   height:100%;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:0;
+  font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:5px;justify-content:flex-start;
   overflow:hidden;min-width:0;
 }
-.cel .num{line-height:1.1;flex:none}
+.cel .num{line-height:1.1;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:14px}
+.cel .num .n-date{font-size:13.5px;line-height:14px;display:block}
 .cel .dots-row{flex:none;margin-top:2px}
 .cel .ann-lb,.cel .ev-lb{flex:none;max-width:98%;line-height:1.15}
 .cel.dim{color:#d8c9ce}
@@ -327,6 +328,18 @@ nav.tabs button.on{color:var(--pri-d)}
 nav.tabs button.on .em{filter:none;opacity:1;transform:translateY(-1px)}
 
 /* ---------- 라이트박스 ---------- */
+/* ═══════════════════════════ iOS 입력칸 안정화 ═══════════════════════════ */
+input[type="date"]{
+  -webkit-appearance:none;appearance:none;min-height:44px;height:44px;
+  font-family:'Jua',sans-serif;font-size:14px;line-height:44px;padding:0 12px;
+  background:#fffdf4;border:2px solid #c7b98f;border-radius:10px;width:100%;
+  display:block;box-sizing:border-box;
+}
+input[type="date"]::-webkit-date-and-time-value{text-align:left}
+@supports (-webkit-touch-callout:none){
+  input[type="date"]{line-height:normal;padding:8px 12px;min-height:44px}
+}
+label.lb{clear:both}
 /* ═══════════════════════════ 스타듀 레트로 ═══════════════════════════ */
 .sdic{display:inline-block;width:20px;height:20px;vertical-align:-4px;image-rendering:pixelated;
   background-image:url("data:image/png;base64,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");background-size:140px 40px;background-repeat:no-repeat}
@@ -1374,7 +1387,7 @@ function renderCal(){
     const hasEv=(evByDay[ds]||[]).length>0, hasRec=(recByDay[ds]||[]).length>0;
     const hasAnn=(annByDay[ds]||[]).length>0;
     let cls2=cls+(hasRec?' recday':'');
-    let inner=d;
+    let inner='<span class="n-date">'+d+'</span>';
     // 순서: 점(기념일 주황+일정 수) → 기념일 → 일정1 → 일정2 (최대 4줄)
     const evs=evByDay[ds]||[];
     if(hasEv||hasAnn){
