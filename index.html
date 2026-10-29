@@ -651,7 +651,7 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
           <h2 class="sec" style="margin:0 0 4px"><span class="sdic i11"></span>우리는 지금</h2>
           <div class="stat-grid">
             <div class="stat-cell"><b id="st-days">-</b><span>만난 날</span></div>
-            <div class="stat-cell"><b id="st-dates">-</b><span>데이트 횟수</span></div>
+            <div class="stat-cell"><b id="st-dates">-</b><span>일정</span></div>
             <div class="stat-cell"><b id="st-recs">-</b><span>기록</span></div>
             <div class="stat-cell"><b id="st-photos">-</b><span>사진</span></div>
             <div class="stat-cell"><b id="st-comments">-</b><span>댓글</span></div>
@@ -998,8 +998,13 @@ function renderHeader(){
       const a=anns[0];
       const diff=Math.round((a.date-new Date(today+'T00:00:00'))/86400000);
       let lbl=a.label;
-      if(a.label==='생일')lbl=(partnerDoc&&partnerDoc.nickname?partnerDoc.nickname:'파트너')+' 생일';
-      else if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나')+' 생일';
+      if(a.label==='생일'||a.label==='내생일'){
+        const md=(a.date.getMonth()+1<10?'0':'')+(a.date.getMonth()+1)+'-'+(a.date.getDate()<10?'0':'')+a.date.getDate();
+        const pb=(coupleDoc.partnerBirthday||'').slice(5), mb=(coupleDoc.myBirthday||'').slice(5);
+        if(md===pb&&pb!==mb)lbl='상대 생일';
+        else if(md===mb&&pb!==mb)lbl='내 생일';
+        else lbl='생일';
+      }
       $('h-ann').style.display='inline-flex';
       $('h-ann').textContent=(a.label==='생일'?'🎂 ':'🎉 ')+lbl+' D-'+diff+' ('+fmtKDate(a.date)+')';
       $('h-ann').dataset.date=toDateStr(a.date);
@@ -1168,7 +1173,7 @@ function renderFeed(items){
     let dateHead='';
     if(r.date!==lastDate){dateHead='<div style="text-align:center;margin:6px 0 2px;font-size:12px;color:var(--tx2);font-weight:700">'+fmtDate(r.date)+'</div>';lastDate=r.date;}
     return dateHead+'<div class="card rec">'
-      +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(mine?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
+      +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(coupleDoc&&coupleDoc.id?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
       +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
       +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
       +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
@@ -1183,7 +1188,7 @@ function renderComments(r){
   const list=(r.comments||[]);
   const rows=list.map(c=>
     '<div class="cmt" id="cmt-'+r.id+'-'+c.id+'"><div class="rec-ava">'+esc((c.name||'?')[0])+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b>'+(c.edited?'<span style="font-size:10px;color:#a8a28c"> · 수정됨</span>':'')+'<div class="ct">'+esc(c.text||'')+'</div></div>'
-    +(c.uid===me.uid?'<span class="cbox"><button class="cedit" onclick="editComment(\''+r.id+'\',\''+c.id+'\')">수정</button><button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button></span>':'')+'</div>'
+    +'<span class="cbox"><button class="cedit" onclick="editComment(\''+r.id+'\',\''+c.id+'\')">수정</button><button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button></span></div>'
   ).join('');
   return '<div class="cmt-list" id="cmts-'+r.id+'">'+rows+'</div>'
     +'<div class="cmt-form"><input id="cin-'+r.id+'" placeholder="한마디 남기기…" maxlength="80" onkeydown="if(event.key===\'Enter\')addComment(\''+r.id+'\')">'
@@ -1370,26 +1375,32 @@ function renderCal(){
     const hasAnn=(annByDay[ds]||[]).length>0;
     let cls2=cls+(hasRec?' recday':'');
     let inner=d;
-    // 점: 기념일 있으면 첫 점=주황, 나머지 분홍(일정 수). 총 최대 4개
-    const nEv=Math.min(hasEv?evByDay[ds].length:0, hasAnn?3:4);
+    // 순서: 점(기념일 주황+일정 수) → 기념일 → 일정1 → 일정2 (최대 4줄)
+    const evs=evByDay[ds]||[];
     if(hasEv||hasAnn){
       let dots='';
       if(hasAnn)dots+='<div class="dot ann"></div>';
-      for(let i=0;i<nEv;i++)dots+='<div class="dot"></div>';
+      for(let i=0;i<Math.min(evs.length,3);i++)dots+='<div class="dot"></div>';
       inner+='<div class="dots-row">'+dots+'</div>';
     }
-    // 윗줄: 기념일 라벨 / 아랫줄: 첫 일정 제목
     if(hasAnn){
       const a=annByDay[ds][0];
-      let lbl;
-      if(a.label==='생일')lbl=(partnerDoc&&partnerDoc.nickname?partnerDoc.nickname.slice(0,2):'파트')+'생일';
-      else if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
-      else lbl=a.label;
+      let lbl=a.label;
+      if(a.label==='생일'||a.label==='내생일'){
+        // 날짜로 실제 누구 생일인지 판정 (coupleDoc에 저장된 두 생일 날짜 비교)
+        const mmm=String(a.date.getMonth()+1).padStart(2,'0'), ddd=String(a.date.getDate()).padStart(2,'0');
+        const md=mmm+'-'+ddd;
+        const pb=(coupleDoc.partnerBirthday||'').slice(5), mb=(coupleDoc.myBirthday||'').slice(5);
+        if(md===pb&&pb!==mb)lbl='상대생일';
+        else if(md===mb&&pb!==mb)lbl='내생일';
+        else if(md===pb&&md===mb)lbl='생일'; // 둘 다 같은 날
+        else lbl=a.label;
+      }
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,5))+'</div>';
     }
-    if(hasEv){
-      inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,5))+'</div>';
-    }
+    evs.slice(0,2).forEach(e=>{
+      inner+='<div class="ev-lb">'+esc((e.title||'').replace(/\s/g,'').slice(0,5))+'</div>';
+    });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
   }
   $('cal-grid').innerHTML=html;
@@ -1421,7 +1432,7 @@ function renderDay(){
   $('sel-title').textContent=fmtDate(selDate)+(selDate===toDateStr(new Date())?' · 오늘':'');
   const list=events.filter(e=>e.date===selDate).sort((a,b)=>a.ts-b.ts);
   $('ev-list').innerHTML=list.length?list.map(e=>
-    '<div class="ev" id="ev-'+e.id+'"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div>'+(e.createdBy===me.uid?'<button class="edel" onclick="editEvent(\''+e.id+'\')">수정</button><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button>':'')+'</div>'
+    '<div class="ev" id="ev-'+e.id+'"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div>'+'<button class="edel" onclick="editEvent(\''+e.id+'\')">수정</button><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
   ).join(''):'<p class="tiny">등록된 일정이 없어요. 아래에서 추가해보세요 📅</p>';
   // 그 날의 기록 (피드에서 날짜가 일치하는 것)
   const recs=feedItems.filter(r=>r.date===selDate).sort((a,b)=>b.ts-a.ts);
@@ -1434,7 +1445,7 @@ function renderDay(){
     const hearted=!!(r.hearts||{})[me.uid];
     const cmtN=(r.comments||[]).length;
     return '<div style="padding:10px 2px;border-bottom:1px solid #f0ece0">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
       +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
@@ -1560,7 +1571,7 @@ function renderChat(){
       +(mine?'':'<div class="chat-ava">'+esc((m.name||'?')[0])+'</div>')
       +'<div class="chat-wrap">'+(mine?'':'<div class="chat-name">'+esc(m.name||'?')+'</div>')
       +'<div class="chat-bub">'+esc(m.text||'').replace(/\n/g,'<br>')+'</div>'
-      +'<div class="chat-meta">'+(mine?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
+      +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
       +'</div></div>';
   });
   const stick=box.scrollHeight-box.scrollTop<80||box.scrollTop===0;
@@ -1578,7 +1589,7 @@ async function sendMsg(){
   }catch(e){toast('전송 실패: '+(e.code||''));}
 }
 async function delMsg(id){
-  const m=chats.find(x=>x.id===id);if(!m||m.uid!==me.uid)return;
+  const m=chats.find(x=>x.id===id);if(!m)return;
   if(!confirm('이 메시지를 삭제할까요?'))return;
   await db.collection('couples').doc(coupleDoc.id).collection('chat').doc(id).delete();
 }
@@ -1590,7 +1601,7 @@ function renderIdeas(){
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
     +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span>'+esc(i.memo)+'</span>':'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
-    +(i.createdBy===me.uid?'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>':'')
+    +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   box.innerHTML=(open.length?open.map(row).join(''):'<p class="tiny" style="margin:4px 0 8px">아직 아이디어가 없어요. 아래에서 추가해보세요 💡</p>')
     +(done.length?'<div style="margin:10px 0 2px;font-size:12px;font-weight:800;color:var(--tx2)">✅ 완료 · '+done.length+'개</div>'+done.map(row).join(''):'');
