@@ -206,9 +206,9 @@ h2.sec .em{font-size:18px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
 .cal-grid .dow{font-size:11px;color:var(--tx2);font-weight:700;padding:6px 0}
 .dow.sun{color:#ff7d8f}.dow.sat{color:#7da1ff}
-.cal-grid{grid-auto-rows:52px}
+.cal-grid{grid-auto-rows:74px}
 .cel{
-  height:52px;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:0;
   overflow:hidden;min-width:0;
 }
@@ -224,7 +224,7 @@ h2.sec .em{font-size:18px}
   width:5px;height:5px;border-radius:50%;background:#ffb43f;margin-top:2px;
 }
 .cel .ann-lb{
-  font-size:8px;font-weight:700;color:#d98a1f;line-height:1.1;margin-top:1px;
+  font-size:8.5px;font-weight:700;color:#d98a1f;line-height:1.25;margin-top:2px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
 }
 .ann-badge{
@@ -237,7 +237,7 @@ h2.sec .em{font-size:18px}
 .cel .dots-row .dot.ann{background:#ffb43f}
 .cel .ann-lb{margin-top:0}
 .cel .ev-lb{
-  font-size:8.5px;font-weight:700;color:var(--pri-d);line-height:1.1;margin-top:1px;
+  font-size:9px;font-weight:700;color:var(--pri-d);line-height:1.25;margin-top:2px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
 }
 .day-panel{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
@@ -1385,10 +1385,10 @@ function renderCal(){
       if(a.label==='생일')lbl=(partnerDoc&&partnerDoc.nickname?partnerDoc.nickname.slice(0,2):'파트')+'생일';
       else if(a.label==='내생일')lbl=(me.displayName||userDoc.nickname||'나').slice(0,2)+'생일';
       else lbl=a.label;
-      inner+='<div class="ann-lb">'+esc(lbl.slice(0,4))+'</div>';
+      inner+='<div class="ann-lb">'+esc(lbl.slice(0,5))+'</div>';
     }
     if(hasEv){
-      inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,4))+'</div>';
+      inner+='<div class="ev-lb">'+esc((evByDay[ds][0].title||'').replace(/\s/g,'').slice(0,5))+'</div>';
     }
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
   }
