@@ -1371,6 +1371,7 @@ function renderCal(){
   const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
   const today=toDateStr(new Date());
   const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
+  Object.keys(evByDay).forEach(k=>evByDay[k].sort((a,b)=>(a.ts||0)-(b.ts||0)));
   const recByDay={};feedItems.forEach(r=>{(recByDay[r.date]=recByDay[r.date]||[]).push(r);});
   let annByDay={};
   if(coupleDoc&&coupleDoc.anniversary){
