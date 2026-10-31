@@ -168,6 +168,7 @@ h2.sec .em{font-size:18px}
 .rec .chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 .chip{font-size:11.5px;background:#eff4e3;color:#5c8f3a;border-radius:20px;padding:4px 10px;font-weight:500}
 .rec .rec-img{width:100%;height:auto;object-fit:contain;border-radius:14px;margin-top:10px;display:block;cursor:zoom-in}
+.day-img{width:auto;max-width:62%;max-height:190px;height:auto;object-fit:cover;border-radius:12px;margin-left:auto;margin-right:auto;display:block}
 .rec-heart{
   margin-top:10px;border:1.5px solid var(--line);background:#fff;border-radius:30px;
   padding:7px 14px;font-size:13.5px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--tx2);
@@ -1463,7 +1464,7 @@ function renderDay(){
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
       +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
-      +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
+      +(r.photoB64?'<img class="rec-img day-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
       +renderComments(r)
