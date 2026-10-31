@@ -133,7 +133,7 @@ header.apph{
 .apph .dday b{font-size:14px;font-weight:900}
 
 /* ---------- 탭 ---------- */
-.tabpane{display:none;padding:16px 16px 8px;animation:fadein .22s ease}
+.tabpane{display:none;padding:16px 16px 96px;animation:fadein .22s ease}
 .tabpane.on{display:block}
 h2.sec{font-size:16px;font-weight:900;margin:4px 2px 10px;display:flex;align-items:center;gap:6px}
 h2.sec .em{font-size:18px}
@@ -275,7 +275,6 @@ h2.sec .em{font-size:18px}
 .tag-top .chip{font-size:12.5px}
 /* ═══════════════════════════ 지도 ═══════════════════════════ */
 #the-map{height:430px;border-radius:12px;overflow:hidden;z-index:0;border:2.5px solid #b8a97e;box-shadow:3px 3px 0 rgba(120,100,60,.2)}
-.leaflet-tile-pane{filter:saturate(.45) brightness(1.12) contrast(.82) sepia(.22) hue-rotate(-18deg)}
 .map-pin{background:none;border:none;width:30px;height:30px;position:relative}
 .map-pin .pb{
   width:30px;height:30px;border-radius:50% 50% 50% 50%/42% 42% 58% 58%;
@@ -288,10 +287,6 @@ h2.sec .em{font-size:18px}
   transform:translateX(-50%) rotate(45deg);border-radius:0 0 2px 0;
 }
 .map-pin:hover .pb{transform:scale(1.12);transition:transform .15s}
-.leaflet-popup-content-wrapper{background:#fbf9f0;border:2px solid #d5e6c3;color:#4c4436}
-.leaflet-popup-tip{background:#fbf9f0;border:2px solid #d5e6c3}
-.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
-.leaflet-popup-content{margin:10px 12px;line-height:1.5}
 .place-wrap{position:relative}
 #place-dd{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.10);z-index:70;max-height:190px;overflow-y:auto}
 #place-dd.on{display:block}
@@ -466,8 +461,6 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id="shell">
@@ -585,13 +578,10 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
         <input id="r-title" placeholder="예) 한강 피크닉 🧺" maxlength="40">
         <label class="lb">내용</label>
         <textarea id="r-body" placeholder="오늘 무슨 일이 있었나요?"></textarea>
-        <label class="lb">장소</label>
-        <div class="place-wrap">
-          <input id="r-place" placeholder="예) 여의도 한강공원 · 두 글자부터 검색" maxlength="30" autocomplete="off" oninput="placeSearch()">
-          <div id="place-dd"></div>
-        </div>
-        <div id="place-hint" onclick="clearPicked()">📍 지도 위치로 기록될 거예요 · 눌러서 해제</div>
-        <label class="lb">해시태그 (최대 5개 · Enter로 추가)</label>
+        <label class="lb">장소 (최대 5개 · Enter로 추가)</label>
+        <input id="r-place" placeholder="예) 여의도 한강공원" maxlength="30" autocomplete="off" onkeydown="if(event.key==='Enter')addPlace()">
+        <div class="mood-row" id="place-chips"></div>
+        <label class="lb">해시태그 (최대 10개 · Enter로 추가)</label>
         <input id="r-tags" placeholder="#한강 #노을 #데이트" maxlength="60">
         <div class="mood-row" id="tag-chips"></div>
         <div class="photo-pick" onclick="document.getElementById('r-file').click()">
@@ -640,13 +630,6 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
     </div>
 
     <!-- ─ 설정 ─ -->
-    <div id="pane-map" class="tabpane">
-      <div class="card">
-        <h2 class="sec" style="margin:0 0 4px"><span class="sdic i5"></span>데이트 지도</h2>
-        <p class="tiny" id="map-count" style="margin:0 0 8px"></p>
-        <div id="the-map"></div>
-      </div>
-    </div>
     <div id="pane-idea" class="tabpane">
       <div class="card">
         <h2 class="sec" style="margin:0 0 4px"><span class="sdic i6"></span>데이트 아이디어</h2>
@@ -739,7 +722,6 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
       <button class="on" data-tab="home" onclick="goTab('home')"><span class="em"><span class="sdic i2"></span></span>홈</button>
       <button data-tab="photo" onclick="goTab('photo')"><span class="em"><span class="sdic i3"></span></span>사진</button>
       <button data-tab="cal" onclick="goTab('cal')"><span class="em"><span class="sdic i4"></span></span>일정</button>
-      <button data-tab="map" onclick="goTab('map')"><span class="em"><span class="sdic i5"></span></span>지도</button>
       <button data-tab="idea" onclick="goTab('idea')"><span class="em"><span class="sdic i6"></span></span>아이디어</button>
       <button data-tab="set" onclick="goTab('set')"><span class="em"><span class="sdic i8"></span></span>설정</button>
     </nav>
@@ -937,7 +919,7 @@ function enterApp(coupleId){
     watchPartner();
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
-  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();renderMap();},e=>console.error(e)));
+  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
   const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
   unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
   const evs=db.collection('couples').doc(coupleId).collection('events');
@@ -1105,16 +1087,31 @@ function goTab(t){
   if(t==='cal'){renderCal();renderDay();}
   if(t==='set'){updateStorage();}
   if(t==='idea'){renderIdeas();}
-  if(t==='map'){initMap();renderMap();setTimeout(()=>{if(lmap)lmap.invalidateSize();},80);}
   if(t==='set'){renderStats();}
 }
 
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
+function collectPlaces(){
+  const chips=[...document.querySelectorAll('#place-chips .mood')].map(el=>el.dataset.place).filter(Boolean);
+  return chips.slice(0,5);
+}
+function renderPlaceChips(places){
+  const box=$('place-chips');if(!box)return;
+  box.innerHTML=places.map((p,i)=>'<button type="button" class="mood on" data-place="'+esc(p)+'" onclick="this.remove()">📍 '+esc(p)+' ✕</button>').join('');
+}
+function addPlace(){
+  const inp=$('r-place');const t=(inp.value||'').trim();
+  if(!t)return;
+  const cur=collectPlaces();
+  if(cur.length>=5){toast('장소는 최대 5개까지예요');return;}
+  if(cur.includes(t)){inp.value='';return;}
+  cur.push(t);renderPlaceChips(cur);inp.value='';
+}
 function parseTags(s){
   const raw=String(s||'').split(/[\s,]+/).map(x=>x.replace(/^#+/,'').trim()).filter(Boolean);
   const seen=new Set();const out=[];
   for(const t of raw){const k=t.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(t);}}
-  return out.slice(0,5);
+  return out.slice(0,10);
 }
 function collectTags(){
   const chips=[...document.querySelectorAll('#tag-chips .mood')].map(el=>el.dataset.tag).filter(Boolean);
@@ -1135,13 +1132,13 @@ document.addEventListener('keydown',e=>{
   if(e.target&&e.target.id==='r-tags'&&e.key==='Enter'){
     e.preventDefault();
     const merged=parseTags([...document.querySelectorAll('#tag-chips .mood')].map(el=>el.dataset.tag).join(' ')+' '+e.target.value);
-    if(merged.length>=5)e.target.value='';
+    if(merged.length>=10)e.target.value='';
     else e.target.value='';
     renderTagChips(merged);
   }
 });
 const MOODS=['💕 설렘','😊 행복','🥰 듬직','😢 아쉬움','😤 삐짐','🤗 포근'];
-let pickedPhoto=null,pickedMood=0;
+let pickedPhoto=null,pickedMood=0,editingRecId=null,editingRecPhoto=null;
 function pickMood(el){document.querySelectorAll('.mood').forEach(m=>m.classList.remove('on'));el.classList.add('on');pickedMood=+el.dataset.i;}
 $('r-file').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
@@ -1150,19 +1147,59 @@ $('r-file').addEventListener('change',async e=>{
   catch(err){$('pick-tx').textContent='사진을 불러오지 못했어요';}
   e.target.value='';
 });
+function editDayRecord(id){
+  const r=feedItems.find(x=>x.id===id);if(!r)return;
+  editingRecId=id;editingRecPhoto=r.photoB64||null;
+  // 홈 탭 기록폼에 값 채우고 이동
+  $('r-title').value=r.title||'';
+  $('r-body').value=r.body||'';
+  $('r-date').value=r.date||selDate;
+  renderPlaceChips(r.places||(r.place?[r.place]:[]));
+  renderTagChips(r.tags||[]);
+  pickedPhoto=editingRecPhoto;
+  $('pick-tx').innerHTML=editingRecPhoto?'✅ 사진 유지 중 (탭하여 변경)':'📷 사진 추가하기 (자동으로 압축돼요)';
+  const card=$('compose-card');if(card)card.classList.remove('hidden');
+  goTab('home');
+  const save=$('rec-save');
+  if(save){save.textContent='수정 완료하기';save.onclick=saveEditedRecord;}
+  setTimeout(()=>{window.scrollTo(0,0);$('r-title').focus();},120);
+}
+async function saveEditedRecord(){
+  if(!editingRecId)return;
+  const title=$('r-title').value.trim(),body=$('r-body').value.trim(),date=$('r-date').value;
+  const places=collectPlaces();
+  if(!title&&!body&&!pickedPhoto){toast('제목이나 내용, 사진 중 하나는 넣어주세요');return;}
+  if(!date){toast('날짜를 선택해 주세요');return;}
+  const btn=$('rec-save');btn.disabled=true;btn.textContent='저장 중…';
+  try{
+    await db.collection('couples').doc(coupleDoc.id).collection('records').doc(editingRecId)
+      .update({title,body,places,date,place:(places[0]||''),placesAll:places,tags:collectTags(),photoB64:pickedPhoto||null});
+    toast('수정했어요 ✏️');
+  }catch(e){toast('수정 실패: '+(e.code||''));}
+  btn.disabled=false;
+  editingRecId=null;editingRecPhoto=null;
+  $('r-title').value='';$('r-body').value='';pickedPhoto=null;renderPlaceChips([]);renderTagChips([]);
+  $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
+  card=document.getElementById('compose-card');if(card)card.classList.add('hidden');
+  const fh=document.getElementById('fab-home');
+  if(fh){fh.textContent='＋';fh.style.transform='';}
+  const sv=document.getElementById('rec-save');
+  if(sv){sv.textContent='기록 저장하기';sv.onclick=saveRecord;}
+}
 async function saveRecord(){
-  const title=$('r-title').value.trim(),body=$('r-body').value.trim(),place=$('r-place').value.trim(),date=$('r-date').value;
+  const title=$('r-title').value.trim(),body=$('r-body').value.trim(),date=$('r-date').value;
+  const places=collectPlaces();
   if(!title&&!body&&!pickedPhoto){toast('제목이나 내용, 사진 중 하나는 넣어주세요');return;}
   if(!date){toast('날짜를 선택해 주세요');return;}
   const btn=$('rec-save');btn.disabled=true;btn.textContent='저장 중…';
   try{
     await db.collection('couples').doc(coupleDoc.id).collection('records').add({
       author:me.uid,authorName:me.displayName||userDoc.nickname||'나',
-      date,title,body,place,tags:collectTags(),
+      date,title,body,places,tags:collectTags(),
       lat:pickedPlace?pickedPlace.lat:null,lng:pickedPlace?pickedPlace.lng:null,
       photoB64:pickedPhoto||null,hearts:{},ts:Date.now()
     });
-    $('r-title').value='';$('r-body').value='';$('r-place').value='';pickedPhoto=null;pickedPlace=null;$('place-hint').style.display='none';
+    $('r-title').value='';$('r-body').value='';pickedPhoto=null;renderPlaceChips([]);
     $('r-tags').value='';renderTagChips([]);
     $('pick-tx').textContent='사진 추가하기 (자동으로 압축돼요)';
     $('compose-card').classList.add('hidden');
@@ -1190,7 +1227,7 @@ function renderFeed(items){
       +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(coupleDoc&&coupleDoc.id?'<button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
       +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
       +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
-      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
+      +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
@@ -1460,10 +1497,10 @@ function renderDay(){
     const hearted=!!(r.hearts||{})[me.uid];
     const cmtN=(r.comments||[]).length;
     return '<div style="padding:10px 2px;border-bottom:1px solid #f0ece0">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
-      +((r.place||(r.tags&&r.tags.length))?'<div class="chips">'+(r.place?(r.lat?'<span class="chip" style="cursor:pointer" onclick="goTab(\'map\');flyToRec(\''+r.id+'\')">📍 '+esc(r.place)+'</span>':'<span class="chip">📍 '+esc(r.place)+'</span>'):'')+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
+      +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(r.photoB64?'<img class="rec-img day-img" src="'+r.photoB64+'" onclick="openLb(\''+r.id+'\',true)" loading="lazy">':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
       +'<button class="cmt-btn" onclick="focusComment(\''+r.id+'\')">💬 '+(cmtN||'')+'</button>'
@@ -1499,66 +1536,7 @@ function renderStats(){
     ?top.map(([t,n])=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+' <b>'+n+'</b></span>').join('')
     :'<span class="tiny">아직 태그가 없어요</span>';
 }
-let lmap=null,mapInited=false,mapFitDone=false,recMarkers={},placeTimer=null;
-function placeSearch(){
-  const q=$('r-place').value.trim();
-  pickedPlace=null;$('place-hint').style.display='none';
-  const box=$('place-dd');
-  clearTimeout(placeTimer);
-  if(q.length<2){box.classList.remove('on');box.innerHTML='';return;}
-  placeTimer=setTimeout(async()=>{
-    try{
-      const res=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=ko&limit=5&q='+encodeURIComponent(q));
-      const list=await res.json();
-      if(!list.length){box.innerHTML='<div class="pdd-item" style="color:#8f8a72">검색 결과가 없어요</div>';box.classList.add('on');return;}
-      box.innerHTML=list.map(it=>'<div class="pdd-item" onclick="pickPlace('+it.lat+','+it.lon+',this)" data-n="'+esc(it.display_name)+'">'+esc(it.display_name)+'</div>').join('');
-      box.classList.add('on');
-    }catch(e){box.classList.remove('on');}
-  },400);
-}
-function pickPlace(lat,lon,el){
-  pickedPlace={lat:lat,lng:lon,name:el.dataset.n||''};
-  const nm=pickedPlace.name;
-  $('r-place').value=nm.length>24?nm.slice(0,24)+'…':nm;
-  $('place-hint').style.display='block';
-  $('place-dd').classList.remove('on');
-}
-function clearPicked(){
-  pickedPlace=null;$('place-hint').style.display='none';
-  toast('장소를 다시 검색해 선택해 주세요');
-}
-document.addEventListener('click',e=>{
-  const box=$('place-dd');
-  if(box&&!box.contains(e.target)&&e.target.id!=='r-place')box.classList.remove('on');
-});
-function initMap(){
-  if(mapInited||!window.L)return;
-  mapInited=true;
-  lmap=L.map('the-map',{zoomControl:false}).setView([36.4,127.9],7);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'&copy; Esri, OpenStreetMap 기여자'}).addTo(lmap);
-  L.control.zoom({position:'bottomright'}).addTo(lmap);
-}
-function renderMap(){
-  if(!mapInited)return;
-  const pts=feedItems.filter(r=>r.lat);
-  Object.keys(recMarkers).forEach(k=>{recMarkers[k].remove();delete recMarkers[k];});
-  pts.forEach(r=>{
-    const m=L.marker([r.lat,r.lng],{icon:L.divIcon({className:'map-pin',html:'<div class="pb">♥</div><div class="pt"></div>',iconSize:[30,34],iconAnchor:[15,32]})}).addTo(lmap);
-    m.bindPopup('<div style="min-width:150px">'
-      +(r.photoB64?'<img src="'+r.photoB64+'" style="width:100%;border-radius:10px;cursor:pointer" onclick="openLb(\''+r.id+'\',true)">':'')
-      +'<b style="font-size:13.5px;display:block;margin-top:4px;color:#5c8f3a">'+esc(r.title||'기록')+'</b>'
-      +'<span style="font-size:11px;color:#999">'+fmtDate(r.date)+(r.place?' · 📍'+esc(r.place):'')+'</span></div>');
-    recMarkers[r.id]=m;
-  });
-  const c=$('map-count');
-  c.textContent=pts.length?'우리가 다녀온 곳 '+pts.length+'곳 · 핀을 눌러 기록을 보세요':'아직 지도에 표시된 기록이 없어요. 기록 쓸 때 장소를 검색해서 선택해보세요!';
-  if(pts.length&&!mapFitDone){mapFitDone=true;lmap.fitBounds(L.latLngBounds(pts.map(r=>[r.lat,r.lng])).pad(0.3),{maxZoom:14});}
-}
-function flyToRec(id){
-  const m=recMarkers[id];if(!m){toast('지도를 불러오는 중이에요');return;}
-  lmap.flyTo(m.getLatLng(),15,{duration:.6});
-  setTimeout(()=>m.openPopup(),700);
-}
+
 function updateChatBadge(){
   const b=$('chat-badge');if(!b)return;
   const n=chats.filter(m=>m.uid!==me.uid&&m.ts>chatSeen).length;
