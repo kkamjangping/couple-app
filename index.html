@@ -1239,6 +1239,7 @@ async function saveRecord(){
 let feedItems=[];
 function renderFeed(items){
   feedItems=items;
+  renderPhotoGrid();
   const box=$('feed');
   if(!items.length){box.innerHTML='<div class="empty" style="background:#fff;border-radius:20px"><span class="em">🌱</span><p>첫 기록을 남겨보세요!<br>상대방 화면에도 바로 나타나요</p></div>';return;}
   let lastDate='';
@@ -1361,10 +1362,16 @@ $('ph-file').addEventListener('change',async e=>{
 });
 function renderPhotos(items){
   photoItems=items;
-  $('ph-empty').classList.toggle('hidden',!!items.length);
-  $('ph-count').textContent=items.length?items.length+'장':'';
-  $('ph-grid').innerHTML=items.map((p,i)=>'<img class="ph" src="'+p.b64+'" loading="lazy" onclick="openLb('+i+',false)">').join('');
+  renderPhotoGrid();
 }
+function renderPhotoGrid(){
+  if(!$('ph-grid'))return;
+  buildLbList();
+  $('ph-empty').classList.toggle('hidden',!!lbList.length);
+  $('ph-count').textContent=lbList.length?lbList.length+'장':'';
+  $('ph-grid').innerHTML=lbList.map((p,i)=>'<img class="ph" src="'+p.img+'" loading="lazy" onclick="openLbAt('+i+')">').join('');
+}
+function openLbAt(i){buildLbList();lbShow(i);}
 let lbState=null,lbList=[];
 function buildLbList(){
   // 앨범 사진 + 기록 사진을 하나의 목록으로 (중복 제거: 같은 내용의 사진은 한 번만)
@@ -1527,7 +1534,7 @@ function renderDay(){
     return '<div style="padding:10px 2px;border-bottom:1px solid #f0ece0">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
-      +(r.body?'<div class="txt" style="font-size:13.5px">'+esc(r.body)+'</div>':'')
+      +(r.body?'<div class="txt" style="font-size:13.5px;white-space:pre-wrap">'+esc(r.body)+'</div>':'')
       +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#5c8f3a">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(photosOf(r).length===1?'<img class="rec-img day-img" src="'+photosOf(r)[0]+'" onclick="openLb(\''+r.id+'\',0,true)" loading="lazy">':'')+(photosOf(r).length>1?'<div class="rec-grid" style="max-width:82%;margin:10px auto 0">'+photosOf(r).map((p,pi)=>'<img src="'+p+'" onclick="openLb(\''+r.id+'\','+pi+',true)" loading="lazy">').join('')+'</div>':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
