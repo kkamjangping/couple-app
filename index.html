@@ -576,7 +576,7 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
     </div>
 
     <!-- ─ 홈 ─ -->
-    <div id="pane-home" class="tabpane on">
+    <div id="pane-home" class="tabpane">
       <div class="card hidden" id="compose-card" style="margin-bottom:14px">
         <h2 class="sec" style="margin-top:0"><span class="sdic i2"></span>새 기록 작성</h2>
         <label class="lb label-first">언제</label>
@@ -727,9 +727,9 @@ input::placeholder,textarea::placeholder{color:#a89c72;font-family:'Gaegu',sans-
     </div>
 
     <nav class="tabs">
-      <button class="on" data-tab="home" onclick="goTab('home')"><span class="em"><span class="sdic i2"></span></span>홈</button>
+      <button data-tab="home" onclick="goTab('home')"><span class="em"><span class="sdic i2"></span></span>홈</button>
       <button data-tab="photo" onclick="goTab('photo')"><span class="em"><span class="sdic i3"></span></span>사진</button>
-      <button data-tab="cal" onclick="goTab('cal')"><span class="em"><span class="sdic i4"></span></span>일정</button>
+      <button class="on" data-tab="cal" onclick="goTab('cal')"><span class="em"><span class="sdic i4"></span></span>일정</button>
       <button data-tab="idea" onclick="goTab('idea')"><span class="em"><span class="sdic i6"></span></span>아이디어</button>
       <button data-tab="set" onclick="goTab('set')"><span class="em"><span class="sdic i8"></span></span>설정</button>
     </nav>
@@ -913,7 +913,7 @@ async function joinByCode(){
 
 /* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
 function enterApp(coupleId){
-  show('view-app');goTab('home');
+  show('view-app');goTab('cal');
   unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
     if(!doc.exists){ // 해제됨
       detachAll();
