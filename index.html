@@ -484,6 +484,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:#ff2e88!import
 .mood.on{background:rgba(255,46,136,.2)!important;border-color:#ff2e88!important;color:#ffd27e!important}
 nav.tabs{bottom:10px!important;width:calc(100% - 20px)!important;border-radius:22px!important;border:1px solid rgba(255,255,255,.08)!important;border-top:none!important;background:rgba(14,8,10,.86)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 34px rgba(0,0,0,.5)!important;padding:8px 8px calc(8px + env(safe-area-inset-bottom))!important}
 nav.tabs button{border-radius:14px;font-size:10.5px;color:#b87a92}
+.tab-dot{position:absolute;top:4px;right:calc(50% - 20px);width:10px;height:10px;border-radius:50%;background:#ff2e88;border:2px solid #131016;box-shadow:0 0 8px rgba(255,46,136,.8);display:none}
+.tab-dot.on{display:block}
 nav.tabs button.on{background:linear-gradient(135deg,rgba(255,95,168,.22),rgba(200,31,14,.22))!important;color:#ffd27e!important;box-shadow:inset 0 0 0 1px rgba(255,46,136,.35)}
 .fab,#fab-home{background:linear-gradient(135deg,#ff5fa8,#d1146e)!important;border:none!important;box-shadow:0 10px 24px rgba(255,46,136,.45)!important;border-radius:18px!important;color:#fff}
 .rec-img{border-radius:16px}
@@ -774,10 +776,10 @@ button:active{transform:scale(.985)}
     </div>
 
     <nav class="tabs">
-      <button data-tab="home" onclick="goTab('home')"><span class="em">📝</span>홈</button>
-      <button data-tab="photo" onclick="goTab('photo')"><span class="em">📸</span>사진</button>
-      <button class="on" data-tab="cal" onclick="goTab('cal')"><span class="em">🗓️</span>일정</button>
-      <button data-tab="idea" onclick="goTab('idea')"><span class="em">💡</span>아이디어</button>
+      <button data-tab="home" onclick="goTab('home')"><span class="em">📝</span>홈<span class="tab-dot" id="dot-home"></span></button>
+      <button data-tab="photo" onclick="goTab('photo')"><span class="em">📸</span>사진<span class="tab-dot" id="dot-photo"></span></button>
+      <button class="on" data-tab="cal" onclick="goTab('cal')"><span class="em">🗓️</span>일정<span class="tab-dot" id="dot-cal"></span></button>
+      <button data-tab="idea" onclick="goTab('idea')"><span class="em">💡</span>아이디어<span class="tab-dot" id="dot-idea"></span></button>
       <button data-tab="set" onclick="goTab('set')"><span class="em">⚙️</span>설정</button>
     </nav>
   </div>
@@ -960,6 +962,7 @@ async function joinByCode(){
 
 /* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
 function enterApp(coupleId){
+  try{['home','photo','cal','idea'].forEach(k=>{if(localStorage.getItem('pc-seen-'+k)===null)localStorage.setItem('pc-seen-'+k,Date.now());});}catch(e){}
   show('view-app');goTab('cal');
   unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
     if(!doc.exists){ // 해제됨
@@ -974,13 +977,13 @@ function enterApp(coupleId){
     watchPartner();
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
-  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
+  unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();},e=>console.error(e)));
   const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
-  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();},e=>console.error(e)));
+  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();},e=>console.error(e)));
   const evs=db.collection('couples').doc(coupleId).collection('events');
-  unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();},e=>console.error(e)));
+  unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();updateBadges();},e=>console.error(e)));
   const ids=db.collection('couples').doc(coupleId).collection('ideas');
-  unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();},e=>console.error(e)));
+  unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
   const cht=db.collection('couples').doc(coupleId).collection('chat');
   unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
     chats=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1143,6 +1146,8 @@ function goTab(t){
   if(t==='set'){updateStorage();}
   if(t==='idea'){renderIdeas();}
   if(t==='set'){renderStats();}
+  try{localStorage.setItem('pc-seen-'+t,Date.now());}catch(e){}
+  updateBadges();
 }
 
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
@@ -1628,6 +1633,26 @@ function renderStats(){
     :'<span class="tiny">아직 태그가 없어요</span>';
 }
 
+function updateBadges(){
+  if(!$('pane-home'))return;
+  const mark=(id,on)=>{const el=$(id);if(el)el.classList.toggle('on',on);};
+  const act=document.querySelector('.tabpane.on');
+  const at=act?act.id.replace('pane-',''):null;
+  const adj=(k,v)=>{if(k===at&&v>lastSeen(k)){try{localStorage.setItem('pc-seen-'+k,v);}catch(e){}}return lastSeen(k);};
+  let h=0;
+  feedItems.forEach(r=>{
+    if(r.author!==me.uid&&(r.ts||0)>h)h=r.ts;
+    (r.comments||[]).forEach(c=>{if(c.uid&&c.uid!==me.uid&&(c.ts||0)>h)h=c.ts;});
+  });
+  mark('dot-home',h>adj('home',h));
+  let p=0;photoItems.forEach(x=>{if(x.owner!==me.uid&&(x.ts||0)>p)p=x.ts;});
+  mark('dot-photo',p>adj('photo',p));
+  let c2=0;events.forEach(x=>{if(x.createdBy!==me.uid&&(x.ts||0)>c2)c2=x.ts;});
+  mark('dot-cal',c2>adj('cal',c2));
+  let d=0;ideas.forEach(x=>{if(x.createdBy!==me.uid&&(x.ts||0)>d)d=x.ts;});
+  mark('dot-idea',d>adj('idea',d));
+}
+function lastSeen(k){return +(localStorage.getItem('pc-seen-'+k)||0);}
 function updateChatBadge(){
   const b=$('chat-badge');if(!b)return;
   const n=chats.filter(m=>m.uid!==me.uid&&m.ts>chatSeen).length;
