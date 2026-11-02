@@ -1021,7 +1021,7 @@ function anniversariesOf(annStr, pbdayStr, fromStr, mybdayStr){
   add(ann,'1일');
   // 100일 단위: 만난날 포함 N일째 => ann+N*100-1 (2부터 시작하므로 1일과 중복 없음)
   const dayN=Math.floor((from-ann)/86400000)+1;
-  let n=Math.max(2,Math.floor(dayN/100)+((dayN%100===0)?0:1));
+  let n=Math.max(from<ann?1:2,Math.floor(dayN/100)+((dayN%100===0)?0:1));
   for(let i=n;i<n+8;i++)add(new Date(ann.getTime()+(i*100-1)*86400000),i*100+'일');
   // 주년
   for(let y=1;y<=5;y++){
@@ -1053,7 +1053,7 @@ function renderHeader(){
   $('h-avas').innerHTML='<div class="ava">'+(myAv||esc(my[0]||'나'))+'</div>'+(partnerUid?'<div class="ava">'+(pnAv||esc(pn[0]||'+'))+'</div>':'');
   if(coupleDoc.anniversary){
     const days=Math.floor((Date.now()-new Date(coupleDoc.anniversary+'T00:00:00'))/86400000)+1;
-    $('h-dday').innerHTML=days>0?'♥ 사랑한 지 <b>'+days+'일</b>':'D+'+days;
+    $('h-dday').innerHTML=days>0?'♥ 사랑한 지<b>&nbsp;'+days+'일</b>':'D+'+days;
     // 다가오는 기념일 배지
     const today=toDateStr(new Date());
     const anns=anniversariesOf(coupleDoc.anniversary,coupleDoc.partnerBirthday||null,today,(coupleDoc.myBirthday||null));
