@@ -214,28 +214,28 @@ h2.sec .em{font-size:18px}
 .cal-head b{font-size:16.5px}
 .cal-head button{border:none;background:#faf1f3;width:32px;height:32px;border-radius:10px;font-size:15px;cursor:pointer;color:var(--pri-d);font-family:inherit}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
-.cal-grid .dow{font-size:11px;color:var(--tx2);font-weight:700;padding:6px 0}
+.cal-grid .dow{font-size:12.5px;color:var(--tx2);font-weight:700;padding:6px 0}
 .dow.sun{color:#ff7d8f}.dow.sat{color:#7da1ff}
-.cal-grid{grid-auto-rows:74px}
+.cal-grid{grid-auto-rows:92px}
 .cel{
   height:100%;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:5px;justify-content:flex-start;
   overflow:hidden;min-width:0;
 }
-.cel .num{line-height:1.1;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:14px}
-.cel .num .n-date{font-size:13.5px;line-height:14px;display:block}
+.cel .num{line-height:1.1;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:17px}
+.cel .num .n-date{font-size:16px;line-height:17px;display:block}
 .cel .dots-row{flex:none;margin-top:2px}
 .cel .ann-lb,.cel .ev-lb{flex:none;max-width:98%;line-height:1.15}
 .cel.dim{color:#d8c9ce}
 .cel.today{color:var(--pri-d);font-weight:900}
 .cel.recday{color:var(--pri);font-weight:700}
 .cel.sel{background:#150c0f;box-shadow:inset 0 0 0 2px var(--pri),0 2px 8px rgba(92,143,58,.25);color:var(--pri-d);font-weight:900}
-.cel .dot{width:5px;height:5px;border-radius:50%;background:var(--pri);margin-top:2px;color:#fff}
+.cel .dot{width:6px;height:6px;border-radius:50%;background:var(--pri);margin-top:3px;color:#fff}
 .cel .ann-dot{
-  width:5px;height:5px;border-radius:50%;background:#ffb43f;margin-top:2px;
+  width:6px;height:6px;border-radius:50%;background:#ffb43f;margin-top:3px;
 }
 .cel .ann-lb{
-  font-size:8px;font-weight:700;color:#d98a1f;line-height:1.25;margin-top:2px;letter-spacing:-0.3px;
+  font-size:11.5px;font-weight:700;color:#d98a1f;line-height:1.3;margin-top:3px;letter-spacing:-0.3px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
 }
 .ann-badge{
@@ -248,7 +248,7 @@ h2.sec .em{font-size:18px}
 .cel .dots-row .dot.ann{background:#ffb43f}
 .cel .ann-lb{margin-top:0}
 .cel .ev-lb{
-  font-size:8px;font-weight:700;color:var(--pri-d);line-height:1.25;margin-top:2px;letter-spacing:-0.3px;
+  font-size:11.5px;font-weight:700;color:var(--pri-d);line-height:1.3;margin-top:3px;letter-spacing:-0.3px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
 }
 .day-panel{background:#150c0f;border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
@@ -1556,7 +1556,7 @@ function renderCal(){
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,7))+'</div>';
     }
     (hasAnn?evs.slice(0,2):evs.slice(0,3)).forEach(e=>{
-      inner+='<div class="ev-lb">'+esc((e.title||'').slice(0,8))+'</div>';
+      inner+='<div class="ev-lb">'+esc((e.title||'').slice(0,7))+'</div>';
     });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
   }
