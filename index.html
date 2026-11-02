@@ -165,7 +165,9 @@ h2.sec .em{font-size:18px}
 .feed{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .rec{position:relative}
 .rec-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.rec-ava{width:34px;height:34px;border-radius:50%;background:var(--pri-s);display:flex;align-items:center;justify-content:center;font-size:14px}
+.rec-ava{width:34px;height:34px;border-radius:50%;background:var(--pri-s);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;flex:none}
+.rec-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.chat-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .rec-who{flex:1}
 .rec-who b{font-size:14px}
 .rec-who span{display:block;font-size:11.5px;color:var(--tx2)}
@@ -1210,6 +1212,10 @@ $('r-file').addEventListener('change',async e=>{
   }catch(err){$('pick-tx').textContent='사진을 불러오지 못했어요';}
   e.target.value='';
 });
+function avaOf(uid,name){
+  const av=uid===me.uid?(userDoc&&userDoc.avatarB64):((partnerDoc&&uid===partnerUid)?partnerDoc.avatarB64:null);
+  return av?'<img src="'+av+'" alt="">':esc((name||'?')[0]);
+}
 function photosOf(r){
   let a=r.photoB64s;
   if(typeof a==='string')a=[a];
@@ -1301,7 +1307,7 @@ function renderFeed(items){
     let dateHead='';
     if(r.date!==lastDate){dateHead='<div style="text-align:center;margin:6px 0 2px;font-size:12px;color:var(--tx2);font-weight:700">'+fmtDate(r.date)+'</div>';lastDate=r.date;}
     return dateHead+'<div class="card rec">'
-      +'<div class="rec-top"><div class="rec-ava">'+esc((r.authorName||'?')[0])+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(coupleDoc&&coupleDoc.id?'<button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
+      +'<div class="rec-top"><div class="rec-ava">'+avaOf(r.author,r.authorName)+'</div><div class="rec-who"><b>'+esc(r.authorName||'?')+'</b><span>'+fmtTime(r.ts)+'</span></div>'+(coupleDoc&&coupleDoc.id?'<button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button>':'')+'</div>'
       +(r.title?'<h3>'+esc(r.title)+'</h3>':'')
       +(r.body?'<div class="txt">'+esc(r.body)+'</div>':'')
       +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#ff2e88">#'+esc(t)+'</span>').join(''))+'</div>':'')
@@ -1315,7 +1321,7 @@ function renderFeed(items){
 function renderComments(r){
   const list=(r.comments||[]);
   const rows=list.map(c=>
-    '<div class="cmt" id="cmt-'+r.id+'-'+c.id+'"><div class="rec-ava">'+esc((c.name||'?')[0])+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b>'+(c.edited?'<span style="font-size:10px;color:#d9a8b8"> · 수정됨</span>':'')+'<div class="ct">'+esc(c.text||'')+'</div></div>'
+    '<div class="cmt" id="cmt-'+r.id+'-'+c.id+'"><div class="rec-ava">'+avaOf(c.uid,c.name)+'</div><div class="cb"><b>'+esc(c.name||'?')+'</b>'+(c.edited?'<span style="font-size:10px;color:#d9a8b8"> · 수정됨</span>':'')+'<div class="ct">'+esc(c.text||'')+'</div></div>'
     +'<span class="cbox"><button class="cedit" onclick="editComment(\''+r.id+'\',\''+c.id+'\')">수정</button><button class="cdel" onclick="delComment(\''+r.id+'\',\''+c.id+'\')">삭제</button></span></div>'
   ).join('');
   return '<div class="cmt-list" id="cmts-'+r.id+'">'+rows+'</div>'
@@ -1582,7 +1588,7 @@ function renderDay(){
     const hearted=!!(r.hearts||{})[me.uid];
     const cmtN=(r.comments||[]).length;
     return '<div style="padding:10px 2px;border-bottom:1px solid #28101c">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+esc((r.authorName||'?')[0])+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+avaOf(r.author,r.authorName)+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
       +(r.body?'<div class="txt" style="font-size:13.5px;white-space:pre-wrap">'+esc(r.body)+'</div>':'')
       +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#ff2e88">#'+esc(t)+'</span>').join(''))+'</div>':'')
@@ -1646,7 +1652,7 @@ function renderChat(){
     if(d&&d!==lastDate){out+='<div class="chat-date">'+fmtDate(d)+'</div>';lastDate=d;}
     const mine=m.uid===me.uid;
     out+='<div class="chat-row'+(mine?' mine':'')+'">'
-      +(mine?'':'<div class="chat-ava">'+esc((m.name||'?')[0])+'</div>')
+      +(mine?'':'<div class="chat-ava">'+avaOf(m.uid,m.name)+'</div>')
       +'<div class="chat-wrap">'+(mine?'':'<div class="chat-name">'+esc(m.name||'?')+'</div>')
       +'<div class="chat-bub">'+esc(m.text||'').replace(/\n/g,'<br>')+'</div>'
       +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
