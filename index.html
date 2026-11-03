@@ -803,7 +803,7 @@ button{white-space:nowrap!important;flex:none}
     <div id="pane-set" class="tabpane">
       <div class="set-grp">
         <div class="card">
-          <h2 class="sec" style="margin:0 0 4px">📊우리는 지금</h2>
+          <h2 class="sec" style="margin:0 0 4px">📊 우리는 지금</h2>
           <div class="stat-grid">
             <div class="stat-cell"><b id="st-days">-</b><span>만난 날</span></div>
             <div class="stat-cell"><b id="st-dates">-</b><span>일정</span></div>
@@ -816,7 +816,7 @@ button{white-space:nowrap!important;flex:none}
           <div class="tag-top" id="st-tags"><span class="tiny">아직 태그가 없어요</span></div>
         </div>
         <div class="card">
-          <h2 class="sec" style="margin:0 0 4px">👤프로필</h2>
+          <h2 class="sec" style="margin:0 0 4px">👤 프로필</h2>
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
             <div class="ava-picker" onclick="document.getElementById('ava-file').click()" id="ava-picker">
               <span>📷</span><span class="hint">사진</span>
@@ -835,7 +835,7 @@ button{white-space:nowrap!important;flex:none}
       </div>
       <div class="set-grp">
         <div class="card">
-          <h2 class="sec" style="margin:0 0 4px">💑커플 정보</h2>
+          <h2 class="sec" style="margin:0 0 4px">💑 커플 정보</h2>
           <label class="lb label-first">커플 이름</label>
           <input id="s-cname" placeholder="예) 지수&민준" maxlength="16">
           <label class="lb">만난 날 (디데이)</label>
@@ -856,7 +856,7 @@ button{white-space:nowrap!important;flex:none}
       </div>
       <div class="set-grp">
         <div class="card">
-          <h2 class="sec" style="margin:0 0 4px">💾저장 공간</h2>
+          <h2 class="sec" style="margin:0 0 4px">💾 저장 공간</h2>
           <div style="margin:10px 0 8px;height:10px;background:#28101c;border-radius:10px;overflow:hidden">
             <div id="s-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#ff9ecb,#ff9ecb);border-radius:10px;transition:width .5s"></div>
           </div>
@@ -1935,7 +1935,7 @@ function renderDay(){
     return '<div style="padding:10px 2px;border-bottom:1px solid #28101c">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="rec-ava" style="width:26px;height:26px;font-size:11px">'+avaOf(r.author,r.authorName)+'</div><b style="font-size:13.5px">'+esc(r.authorName||'?')+'</b><span style="font-size:11px;color:var(--tx2)">'+fmtTime(r.ts)+'</span><button class="rec-del" style="margin-left:auto" onclick="editDayRecord(\''+r.id+'\')">수정</button><button class="rec-del" onclick="delRecord(\''+r.id+'\')">삭제</button></div>'
       +(r.title?'<b style="font-size:14.5px;display:block;margin-bottom:3px">'+esc(r.title)+'</b>':'')
-      +(r.body?'<div class="txt" style="font-size:13.5px;white-space:pre-wrap">'+esc(r.body)+'</div>':'')
+      +(r.body?'<div class="txt" style="font-size:13.5px;line-height:1.65;white-space:pre-wrap;margin:0 0 2px">'+esc(r.body)+'</div>':'')
       +((r.places&&r.places.length)||r.place||(r.tags&&r.tags.length)?'<div class="chips">'+((r.places&&r.places.length?r.places:[r.place]).filter(Boolean).map(p=>'<span class="chip">📍 '+esc(p)+'</span>').join(''))+((r.tags||[]).map(t=>'<span class="chip" style="color:#ff2e88">#'+esc(t)+'</span>').join(''))+'</div>':'')
       +(photosOf(r).length===1?'<img class="rec-img day-img" src="'+photosOf(r)[0]+'" onclick="openLb(\''+r.id+'\',0,true)" loading="lazy">':'')+(photosOf(r).length>1?'<div class="rec-grid" style="max-width:82%;margin:10px auto 0">'+photosOf(r).map((p,pi)=>'<img src="'+p+'" onclick="openLb(\''+r.id+'\','+pi+',true)" loading="lazy">').join('')+'</div>':'')
       +'<button class="rec-heart'+(hearted?' on':'')+'" onclick="toggleHeart(\''+r.id+'\')">'+(hearted?'❤️':'🤍')+' '+(heartN||'')+'</button>'
