@@ -2028,7 +2028,7 @@ function renderChat(){
         +(m.imgB64?'<img src="'+m.imgB64+'" onclick="peekChatImg(this.src)" alt="">':'')
         +(m.text?esc(m.text).replace(/\n/g,'<br>'):'')
       +'</div>'
-      +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="startChatReply(\''+m.id+'\')">답장</button>':'')+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
+      +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="startChatReply(\''+m.id+'\')">답장</button>':'')+(m.uid===me.uid?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
       +'</div></div>';
   });
   const stick=box.scrollHeight-box.scrollTop<80||box.scrollTop===0;
@@ -2071,6 +2071,7 @@ function jumpToMsg(id){
 }
 async function delMsg(id){
   const m=chats.find(x=>x.id===id);if(!m)return;
+  if(m.uid!==me.uid){toast('내 메시지만 삭제할 수 있어요');return;}
   if(!confirm('이 메시지를 삭제할까요?'))return;
   await db.collection('couples').doc(coupleDoc.id).collection('chat').doc(id).delete();
 }
