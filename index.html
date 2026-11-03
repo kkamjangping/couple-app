@@ -1272,6 +1272,7 @@ function tamaXpOf(s){return (s.feed||0)*8+(s.pet||0)*3;}
 function tamaLvOf(xp){return Math.max(1,Math.floor(xp/20)+1);}
 async function tamaAction(kind){
   if(tamaBusy)return;tamaBusy=true;
+  const keepTab=(document.querySelector('.tabpane.on')||{id:'pane-game'}).id.replace('pane-','');
   try{
     const t=await db.collection('couples').doc(coupleDoc.id).get();
     const cur=t.data()||{};
@@ -1296,6 +1297,7 @@ async function tamaAction(kind){
     renderTama();
   }catch(e){toast('실패: '+(e.code||''));}
   tamaBusy=false;
+  if(keepTab&&!(document.querySelector('.tabpane.on')||{id:''}).id.endsWith(keepTab)){goTab(keepTab);}
 }
 function tamaPet(ev,fromBtn){if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.thumb-x'))return;tamaAction('pet');}
 function tamaFeed(){tamaAction('feed');}
