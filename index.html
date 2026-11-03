@@ -725,6 +725,26 @@ button{white-space:nowrap!important;flex:none}
           <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🃏 더 곧!</button>
         </div>
       </div>
+      <div class="card" id="game-players">
+        <div style="display:flex;gap:10px;align-items:stretch">
+          <div style="flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 8px">
+            <div id="gp-ava" style="width:52px;height:52px;border-radius:50%;overflow:hidden;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:rgba(132,118,218,.25)"></div>
+            <div id="gp-name" style="font-size:13px;font-weight:800"></div>
+            <div style="font-family:'Pretendard Variable',Pretendard;font-size:18px;font-weight:900;color:#ff5fa8;margin-top:2px">Lv.<span id="gp-lv">1</span></div>
+            <div style="height:9px;background:#241a20;border-radius:6px;overflow:hidden;margin:5px 4px 3px"><div id="gp-xp" style="height:100%;width:0%;background:linear-gradient(90deg,#ff7ab8,#ff2e88);border-radius:6px;transition:width .4s"></div></div>
+            <div id="gp-xp-tx" style="font-size:10.5px;color:var(--tx2)">승리 0 · XP 0</div>
+          </div>
+          <div style="display:flex;align-items:center;font-family:'Pretendard Variable',Pretendard;font-size:13px;font-weight:900;color:#ffd27e">VS</div>
+          <div style="flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 8px">
+            <div id="gp-pava" style="width:52px;height:52px;border-radius:50%;overflow:hidden;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:rgba(255,210,126,.18)"></div>
+            <div id="gp-pname" style="font-size:13px;font-weight:800"></div>
+            <div style="font-family:'Pretendard Variable',Pretendard;font-size:18px;font-weight:900;color:#ffd27e;margin-top:2px">Lv.<span id="gp-plv">1</span></div>
+            <div style="height:9px;background:#241a20;border-radius:6px;overflow:hidden;margin:5px 4px 3px"><div id="gp-pxp" style="height:100%;width:0%;background:linear-gradient(90deg,#ffe2a8,#f6c790);border-radius:6px;transition:width .4s"></div></div>
+            <div id="gp-pxp-tx" style="font-size:10.5px;color:var(--tx2)">승리 0 · XP 0</div>
+          </div>
+        </div>
+        <div id="gp-rec" style="font-size:11.5px;color:var(--tx2);text-align:center;margin-top:8px"></div>
+      </div>
       <div class="card" id="omok-box">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <h2 class="sec" style="margin:0">⚫ 오목 <span style="font-size:12px;color:var(--tx2)">선:검은돌(혜연) · 백:유준</span></h2>
@@ -1012,6 +1032,7 @@ function enterApp(coupleId){
     coupleDoc={id:doc.id,...doc.data()};
     partnerUid=(coupleDoc.members||[]).find(x=>x!==me.uid)||null;
     renderHeader();
+    if($('pane-game')&&$('pane-game').classList.contains('on'))renderGamePlayers();
     watchMe();
     watchPartner();
   }));
@@ -1194,7 +1215,39 @@ function goTab(t){
 /* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
 let omokDoc=null;
 const OMOK_N=15;
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on'))renderOmok();}
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){renderOmok();renderGamePlayers();}}
+// 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
+function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
+function gpXpOf(s){return s.wins*5+s.losses*1;}
+function gpLvOf(xp){return Math.max(1,Math.floor(xp/10)+1);}
+async function gpGive(winnerUid,loserUid){
+  try{
+    const up={};
+    if(winnerUid)up['gp.'+winnerUid+'.wins']=firebase.firestore.FieldValue.increment(1);
+    if(loserUid)up['gp.'+loserUid+'.losses']=firebase.firestore.FieldValue.increment(1);
+    await db.collection('couples').doc(coupleDoc.id).set({gp:up},{merge:true});
+  }catch(e){console.error(e);}
+}
+let gameXp=null;
+function renderGamePlayers(){
+  if(!$('gp-lv')||!coupleDoc)return;
+  gameXp=coupleDoc.gp||{};
+  const s1=gpOf(me.uid),s2=gpOf(partnerUid||'__p');
+  const x1=gpXpOf(s1),x2=gpXpOf(s2);
+  const l1=gpLvOf(x1),l2=gpLvOf(x2);
+  const myAva=userDoc&&userDoc.avatarB64?'<img src="'+userDoc.avatarB64+'" style="width:100%;height:100%;object-fit:cover" alt="">':esc((me.displayName||'나')[0]);
+  const pAva=partnerDoc&&partnerDoc.avatarB64?'<img src="'+partnerDoc.avatarB64+'" style="width:100%;height:100%;object-fit:cover" alt="">':esc((partnerDoc?partnerDoc.nickname:'상대')[0]);
+  $('gp-ava').innerHTML=myAva;$('gp-pava').innerHTML=pAva;
+  $('gp-name').textContent=me.displayName||'나';
+  $('gp-pname').textContent=partnerDoc?partnerDoc.nickname||'상대':'상대';
+  $('gp-lv').textContent=l1;$('gp-plv').textContent=l2;
+  $('gp-xp').style.width=Math.min(100,(x1%10)*10)+'%';
+  $('gp-pxp').style.width=Math.min(100,(x2%10)*10)+'%';
+  $('gp-xp-tx').textContent='승리 '+s1.wins+' · XP '+x1;
+  $('gp-pxp-tx').textContent='승리 '+s2.wins+' · XP '+x2;
+  $('gp-rec').textContent='🏆 전적 '+s1.wins+'승 '+s1.losses+'패 vs '+s2.wins+'승 '+s2.losses+'패 · 승리 +5XP, 패배 +1XP (10XP마다 레벨업)';
+}
+function renderGameTab_old(){}
 function omokBoardOf(){return omokDoc&&omokDoc.length?omokDoc[0]:null;}
 function omokReset(){
   const d=omokBoardOf();
@@ -1245,7 +1298,12 @@ async function omokPut(r,c){
   const winner=omokWinner(cells2,r,c);
   await db.collection('couples').doc(coupleDoc.id).collection('games').doc(d.id)
     .update({moves,turn:d.turn==='B'?'W':'B',winner:winner||null});
-  if(winner)toast('🎉 '+(winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리!');
+  if(winner){
+    const wUid=Object.keys(d.stone||{}).find(u=>d.stone[u]===winner);
+    const lUid=Object.keys(d.stone||{}).find(u=>d.stone[u]!==winner);
+    await gpGive(wUid,lUid);
+    toast('🎉 '+(winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리! +5XP');
+  }
 }
 function omokWinner(cells,r,c){
   const col=cells[r*OMOK_N+c];
