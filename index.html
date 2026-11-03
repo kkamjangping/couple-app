@@ -716,6 +716,27 @@ button{white-space:nowrap!important;flex:none}
         <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="60" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
       </div>
     </div>
+    <div id="pane-game" class="tabpane">
+      <div class="card">
+        <h2 class="sec">🎮 게임랜드</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🃏 더 곧!</button>
+        </div>
+      </div>
+      <div class="card" id="omok-box">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h2 class="sec" style="margin:0">⚫ 오목 <span style="font-size:12px;color:var(--tx2)">선:검은돌(혜연) · 백:유준</span></h2>
+          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="omokReset()">🔄 새 대국</button>
+        </div>
+        <div id="omok-status" style="font-size:14px;font-weight:700;margin-bottom:8px"></div>
+        <div style="background:#f6ecd2;border-radius:14px;padding:8px;overflow:auto">
+          <div id="omok-board" style="display:grid;grid-template-columns:repeat(15,1fr);gap:0;width:100%;max-width:430px;aspect-ratio:1;margin:0 auto;touch-action:manipulation"></div>
+        </div>
+        <div style="font-size:11.5px;color:var(--tx2);margin-top:8px">같은 커플방이면 두 폰에서 실시간 대국 · 한 줄 다섯 알이면 승리!</div>
+      </div>
+    </div>
     <div id="pane-set" class="tabpane">
       <div class="set-grp">
         <div class="card">
@@ -797,6 +818,7 @@ button{white-space:nowrap!important;flex:none}
       <button data-tab="photo" onclick="goTab('photo')"><span class="em">📸</span>사진<span class="tab-dot" id="dot-photo"></span></button>
       <button class="on" data-tab="cal" onclick="goTab('cal')"><span class="em">🗓️</span>일정<span class="tab-dot" id="dot-cal"></span></button>
       <button data-tab="idea" onclick="goTab('idea')"><span class="em">💡</span>아이디어<span class="tab-dot" id="dot-idea"></span></button>
+      <button data-tab="game" onclick="goTab('game')"><span class="em">🎮</span>게임<span class="tab-dot" id="dot-game"></span></button>
       <button data-tab="set" onclick="goTab('set')"><span class="em">⚙️</span>설정</button>
     </nav>
   </div>
@@ -1001,6 +1023,7 @@ function enterApp(coupleId){
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();updateBadges();},e=>console.error(e)));
   const ids=db.collection('couples').doc(coupleId).collection('ideas');
   unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
+  unsubs.push(db.collection('couples').doc(coupleId).collection('games').onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
   const cht=db.collection('couples').doc(coupleId).collection('chat');
   unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
     chats=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1162,11 +1185,80 @@ function goTab(t){
   if(t==='cal'){renderCal();renderDay();}
   if(t==='set'){updateStorage();}
   if(t==='idea'){renderIdeas();}
+  if(t==='game'){renderGameTab();}
   if(t==='set'){renderStats();}
   try{localStorage.setItem('pc-seen-'+t,Date.now());}catch(e){}
   updateBadges();
 }
 
+/* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
+let omokDoc=null;
+const OMOK_N=15;
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on'))renderOmok();}
+function omokBoardOf(){return omokDoc&&omokDoc.length?omokDoc[0]:null;}
+function omokReset(){
+  const d=omokBoardOf();
+  if(d&&!d.winner&&!confirm('진행 중인 대국을 버리고 새로 시작할까요?'))return;
+  db.collection('couples').doc(coupleDoc.id).collection('games').add({
+    type:'omok',moves:[],stone:{[me.uid]:'B',[partnerUid||'p2']:'W'},turn:'B',winner:null,ts:Date.now()
+  }).catch(e=>toast('실패: '+(e.code||'')));
+}
+function renderOmok(){
+  const box=$('omok-board');if(!box)return;
+  const d=omokBoardOf();
+  if(!d){$('omok-status').textContent='아직 대국이 없어요 — 🔄 새 대국 눌러 시작!';box.innerHTML='';return;}
+  const myColor=d.stone&&d.stone[me.uid];
+  $('omok-status').innerHTML=d.winner
+    ?('🏁 '+(d.winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리! 🎉 — 🔄 새 대국으로!')
+    :('차례: <b>'+omokNameOf(d.turn)+'</b>('+d.turn+') · 나는 '+(myColor||'관전')+' · '+d.moves.length+'수');
+  const cells=new Array(OMOK_N*OMOK_N).fill(0);
+  d.moves.forEach((m,i)=>{cells[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
+  const lastM=d.moves[d.moves.length-1];
+  let h='';
+  for(let r=0;r<OMOK_N;r++)for(let c=0;c<OMOK_N;c++){
+    const v=cells[r*OMOK_N+c];
+    const last=lastM&&lastM.r===r&&lastM.c===c;
+    h+='<div data-r="'+r+'" data-c="'+c+'" style="position:relative;aspect-ratio:1;border:0.5px solid rgba(0,0,0,.25);cursor:'+(v||d.winner?'default':'pointer')+'" onclick="omokPut('+r+','+c+')">'
+      +(v?'<div style="position:absolute;inset:8%;border-radius:50%;'+(v==='B'?'background:radial-gradient(circle at 35% 30%,#666,#000);':'background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf);')+'box-shadow:0 1px 2px rgba(0,0,0,.4)'+(last?';outline:2px solid #ff2e88;outline-offset:-2px':'')+'"></div>':'')
+      +'</div>';
+  }
+  box.innerHTML=h;
+}
+function omokNameOf(col){
+  const d=omokBoardOf()||{};
+  const uid=Object.keys(d.stone||{}).find(u=>d.stone[u]===col);
+  if(uid===me.uid)return me.displayName||'나';
+  if(uid===partnerUid)return partnerDoc?partnerDoc.nickname||'상대':'상대';
+  return col==='B'?'검은돌':'흰돌';
+}
+async function omokPut(r,c){
+  const d=omokBoardOf();if(!d||d.winner)return;
+  const myColor=d.stone&&d.stone[me.uid];
+  if(!myColor){toast('두 명의 돌이 이미 정해진 대국이에요 — 새 대국으로!');return;}
+  if(d.turn!==myColor){toast('상대 차례예요!');return;}
+  const cells=new Array(OMOK_N*OMOK_N).fill(0);
+  d.moves.forEach((m,i)=>{cells[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
+  if(cells[r*OMOK_N+c])return;
+  const moves=d.moves.concat([{r,c,uid:me.uid,ts:Date.now()}]);
+  const cells2=new Array(OMOK_N*OMOK_N).fill(0);
+  moves.forEach((m,i)=>{cells2[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
+  const winner=omokWinner(cells2,r,c);
+  await db.collection('couples').doc(coupleDoc.id).collection('games').doc(d.id)
+    .update({moves,turn:d.turn==='B'?'W':'B',winner:winner||null});
+  if(winner)toast('🎉 '+(winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리!');
+}
+function omokWinner(cells,r,c){
+  const col=cells[r*OMOK_N+c];
+  if(!col)return null;
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const[dr,dc]of dirs){
+    let n=1;
+    for(let k=1;k<5;k++){const rr=r+dr*k,cc=c+dc*k;if(rr<0||cc<0||rr>=OMOK_N||cc>=OMOK_N||cells[rr*OMOK_N+cc]!==col)break;n++;}
+    for(let k=1;k<5;k++){const rr=r-dr*k,cc=c-dc*k;if(rr<0||cc<0||rr>=OMOK_N||cc>=OMOK_N||cells[rr*OMOK_N+cc]!==col)break;n++;}
+    if(n>=5)return col;
+  }
+  return null;
+}
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
 function collectPlaces(){
   const chips=[...document.querySelectorAll('#place-chips .mood')].map(el=>el.dataset.place).filter(Boolean);
