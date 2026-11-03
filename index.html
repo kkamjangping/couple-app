@@ -740,9 +740,9 @@ button{white-space:nowrap!important;flex:none}
       <div class="card">
         <h2 class="sec">🎮 게임랜드</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🃏 더 곧!</button>
         </div>
       </div>
       <div class="card" id="game-players">
@@ -765,7 +765,30 @@ button{white-space:nowrap!important;flex:none}
         </div>
         <div id="gp-rec" style="font-size:11.5px;color:var(--tx2);text-align:center;margin-top:8px"></div>
       </div>
-      <div class="card" id="omok-box">
+      <div id="tama-wrap"><div class="card" id="tama-box">
+        <h2 class="sec">🐾 우리 집 지푸라기</h2>
+        <div style="text-align:center;padding:6px 0 2px">
+          <div id="tama-stage" style="display:inline-block;position:relative;width:190px;height:190px;background:radial-gradient(circle at 50% 40%,#241a24,#161016);border-radius:24px;border:1px solid rgba(255,255,255,.08);cursor:pointer;touch-action:manipulation" onclick="tamaPet()">
+            <canvas id="tama-cv" width="380" height="380" style="width:100%;height:100%;image-rendering:pixelated"></canvas>
+            <div id="tama-bubble" style="position:absolute;top:6px;right:6px;background:#fff;color:#2b0a0f;font-family:inherit;font-size:13px;font-weight:800;padding:5px 10px;border-radius:12px;opacity:0;transition:opacity .25s;pointer-events:none">야옹</div>
+            <div id="tama-hearts"></div>
+          </div>
+          <div id="tama-lv" style="font-family:'Pretendard Variable',Pretendard;font-weight:900;font-size:19px;color:#ff5fa8;margin-top:4px">Lv.1</div>
+          <div style="height:10px;background:#241a20;border-radius:8px;overflow:hidden;margin:4px 10%"><div id="tama-xp" style="height:100%;width:0%;background:linear-gradient(90deg,#ff7ab8,#ff2e88);border-radius:8px;transition:width .4s"></div></div>
+          <div id="tama-xp-tx" style="font-size:11px;color:var(--tx2);margin-top:2px"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin:10px 0 6px">
+          <button class="btn-sub" style="flex:1;padding:11px 8px;font-weight:700" id="tama-pet-btn" onclick="tamaPet(event,true)">🖐️ 쓰다듬기</button>
+        </div>
+        <label class="lb" style="margin-top:8px">간식 주기 (해시태그처럼 입력 · Enter)</label>
+        <div style="display:flex;gap:6px;align-items:stretch">
+          <input id="tama-snack" placeholder="예) 츄르 참치 치킨" maxlength="20" autocomplete="off" style="flex:1;min-width:0">
+          <button type="button" class="btn-add" onclick="tamaFeed()">🍖 주기</button>
+        </div>
+        <div id="tama-snack-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      </div>
+      </div>
+      <div id="omok-wrap" style="display:none"><div class="card" id="omok-box">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <h2 class="sec" style="margin:0">⚫ 오목 <span style="font-size:12px;color:var(--tx2)">선:검은돌(혜연) · 백:유준</span></h2>
           <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="omokReset()">🔄 새 대국</button>
@@ -1052,7 +1075,7 @@ function enterApp(coupleId){
     coupleDoc={id:doc.id,...doc.data()};
     partnerUid=(coupleDoc.members||[]).find(x=>x!==me.uid)||null;
     renderHeader();
-    if($('pane-game')&&$('pane-game').classList.contains('on'))renderGamePlayers();
+    if($('pane-game')&&$('pane-game').classList.contains('on'))renderGameTab();
     watchMe();
     watchPartner();
   }));
@@ -1232,10 +1255,140 @@ function goTab(t){
   updateBadges();
 }
 
+/* ═══════════════════════════ 다마고치(지푸라기) ═══════════════════════════ */
+let tamaState=null,tamaAnim=null,tamaFrame=0,tamaBusy=false;
+function tamaName(){return (coupleDoc&&coupleDoc.tamaName)||'지푸라기';}
+async function tamaRename(){
+  const v=prompt('이름을 지어주세요 (최대 8자)',tamaName());
+  if(v===null)return;
+  const t=(v||'').trim().slice(0,8);
+  if(!t)return;
+  await db.collection('couples').doc(coupleDoc.id).set({tamaName:t},{merge:true});
+  toast('이름이 "'+t+'"가 됐어요 🐾');
+}
+function tamaXpOf(s){return (s.feed||0)*8+(s.pet||0)*3;}
+function tamaLvOf(xp){return Math.max(1,Math.floor(xp/20)+1);}
+async function tamaAction(kind){
+  if(tamaBusy)return;tamaBusy=true;
+  try{
+    const t=await db.collection('couples').doc(coupleDoc.id).get();
+    const cur=t.data()||{};
+    const st=cur.tama||{feed:0,pet:0,snacks:{},lastTs:0};
+    const beforeLv=tamaLvOf(tamaXpOf(st));
+    if(kind==='pet'){st.pet=(st.pet||0)+1;}
+    else{
+      const v=($('tama-snack').value||'').trim().slice(0,20);
+      if(!v){toast('간식 이름을 입력해 주세요');tamaBusy=false;return;}
+      st.snacks=st.snacks||{};
+      st.snacks[v]=(st.snacks[v]||0)+1;
+      st.feed=(st.feed||0)+1;
+      $('tama-snack').value='';
+    }
+    st.lastTs=Date.now();
+    const afterLv=tamaLvOf(tamaXpOf(st));
+    await db.collection('couples').doc(coupleDoc.id).update({tama:st,tamaName:cur.tamaName||'지푸라기'});
+    tamaState=st;
+    if(kind==='pet')tamaCry('야옹');
+    else{tamaCry('콰삭');tamaHearts();}
+    if(afterLv>beforeLv)toast('🐾 '+tamaName()+'가 Lv.'+afterLv+'가 됐어요!');
+    renderTama();
+  }catch(e){toast('실패: '+(e.code||''));}
+  tamaBusy=false;
+}
+function tamaPet(ev,fromBtn){if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.thumb-x'))return;tamaAction('pet');}
+function tamaFeed(){tamaAction('feed');}
+function tamaCry(txt){
+  const b=$('tama-bubble');if(!b)return;
+  b.textContent=txt;b.style.opacity=1;
+  clearTimeout(b._t);b._t=setTimeout(()=>b.style.opacity=0,1100);
+}
+function tamaHearts(){
+  const box=$('tama-hearts');if(!box)return;
+  for(let i=0;i<3;i++)setTimeout(()=>{
+    const h=document.createElement('div');
+    h.textContent='💗';
+    h.style.cssText='position:absolute;left:'+(30+Math.random()*40)+'%;bottom:20%;font-size:'+(14+Math.random()*10)+'px;transition:all 1.4s ease-out;pointer-events:none';
+    box.appendChild(h);
+    requestAnimationFrame(()=>{h.style.bottom='85%';h.style.opacity='0';});
+    setTimeout(()=>h.remove(),1500);
+  },i*220);
+}
+function renderTama(){
+  if(!$('tama-lv')||!coupleDoc)return;
+  tamaState=coupleDoc.tama||{feed:0,pet:0,snacks:{}};
+  const xp=tamaXpOf(tamaState),lv=tamaLvOf(xp);
+  document.querySelector('#tama-box h2.sec').innerHTML='<span id="tama-name-lb">🐾 '+esc(tamaName())+'</span> <button class="cdx" style="border:none;background:none;color:#ff9ecb;font-size:11px;cursor:pointer" onclick="tamaRename()">✏️</button>';
+  $('tama-lv').textContent='Lv.'+lv;
+  $('tama-xp').style.width=Math.min(100,(xp%20)/20*100)+'%';
+  $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP · 간식 '+tamaState.feed+'회 · 쓰다듬기 '+tamaState.pet+'회';
+  const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>b[1]-a[1]);
+  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip">🍖 '+esc(k)+' <b>'+n+'</b></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식 이력이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
+  tamaDrawIdle();
+}
+function tamaDrawIdle(){
+  const cv=$('tama-cv');if(!cv)return;
+  if(tamaAnim)cancelAnimationFrame(tamaAnim);
+  const g=cv.getContext('2d');
+  function frame(ts){
+    tamaFrame=ts;
+    g.clearRect(0,0,cv.width,cv.height);
+    drawBlackCat(g,cv.width,cv.height,ts);
+    tamaAnim=requestAnimationFrame(frame);
+  }
+  tamaAnim=requestAnimationFrame(frame);
+}
+function drawBlackCat(g,W,H,ts){
+  const p=Math.floor(ts/450)%2; // 호흡 애니메이션(2프레임)
+  const cx=W/2,cy=H/2+18;
+  const s=1+(p===0?0:0.015);
+  g.save();g.translate(cx,cy);g.scale(s,s);
+  // 귀
+  g.fillStyle='#111013';
+  g.beginPath();g.moveTo(-46,-58);g.lineTo(-30,-88);g.lineTo(-14,-58);g.closePath();g.fill();
+  g.beginPath();g.moveTo(46,-58);g.lineTo(30,-88);g.lineTo(14,-58);g.closePath();g.fill();
+  // 몸통(까만 도트 고양이)
+  g.fillStyle='#111013';
+  g.fillRect(-60,-64,120,132); // 머리+몸 도트 사각
+  // 얼굴 도트 픽셀 감성
+  g.fillStyle='#fff';
+  g.fillRect(-38,-28,12,12);g.fillRect(26,-28,12,12); // 눈
+  g.fillStyle='#ffd27e';
+  g.fillRect(-33,-23,4,4);g.fillRect(31,-23,4,4); // 눈빛
+  g.fillStyle='#ff8ab0';
+  g.fillRect(-6,-12,12,8); // 코
+  g.fillStyle='#fff';
+  [[-18,-4],[14,-4]].forEach(([x,y])=>g.fillRect(x,y,10,3)); // 입
+  // 수염
+  g.fillStyle='#55505a';
+  [[-62,-16],[-62,-8],[52,-16],[52,-8]].forEach(([x,y])=>g.fillRect(x,y,16,3));
+  // 가만히 꼬리 흔들
+  const tw=Math.sin(ts/500)*6;
+  g.fillStyle='#111013';
+  g.fillRect(56,30,34,12);
+  g.fillRect(84+tw,18,12,24);
+  g.restore();
+  // 바닥 그림자
+  g.fillStyle='rgba(0,0,0,.35)';
+  g.beginPath();g.ellipse(cx,cy+96,70,12,0,0,7);g.fill();
+}
+document.addEventListener('keydown',e=>{
+  if(e.target&&e.target.id==='tama-snack'&&e.key==='Enter'&&!e.isComposing){e.preventDefault();tamaFeed();}
+});
 /* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
 let omokDoc=null;
 const OMOK_N=15;
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){renderOmok();renderGamePlayers();}}
+let curGame='tama';
+function pickGame(g){
+  curGame=g;
+  ['tama','omok'].forEach(k=>{
+    const b=$('gm-tab-'+k);if(b)b.classList.toggle('on',k===g);
+  });
+  const tp=$('tama-wrap'),op=$('omok-wrap');
+  if(tp)tp.style.display=g==='tama'?'block':'none';
+  if(op)op.style.display=g==='omok'?'block':'none';
+  if(g==='tama')renderTama();else renderOmok();
+}
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok')renderOmok();else renderTama();renderGamePlayers();}}
 // 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
 function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
 function gpXpOf(s){return s.wins*5+s.losses*1;}
