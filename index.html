@@ -409,6 +409,12 @@ input::placeholder,textarea::placeholder{color:#f0a8c8;font-family:'Pretendard V
 .chat-foot{flex:none;display:flex;gap:8px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:#150c0f;border-top:1px solid #28101c}
 #chat-in{flex:1;padding:11px 14px;font-size:14px;border-radius:22px}
 .chat-send{border:none;background:var(--pri);color:#fff;border-radius:50%;width:42px;height:42px;font-size:17px;cursor:pointer;flex:none;font-family:inherit;font-weight:900}
+.chat-att{border:none;background:rgba(255,255,255,.08);color:#fff;border-radius:50%;width:42px;height:42px;font-size:16px;cursor:pointer;flex:none}
+.chat-bub img{display:block;max-width:210px;max-height:220px;border-radius:12px;margin:2px 0 4px;cursor:zoom-in}
+.chat-quote{border-left:3px solid #ff5fa8;background:rgba(255,255,255,.06);border-radius:8px;padding:5px 9px;margin-bottom:5px;font-size:12px;color:var(--tx2);cursor:pointer;max-width:200px}
+.chat-quote b{color:#ff9ecb;font-weight:700}
+.chat-flash{animation:chatflash 1.2s ease}
+@keyframes chatflash{0%,60%{box-shadow:0 0 0 2px #ff2e88}100%{box-shadow:none}}
 .chat-empty{text-align:center;color:#d9a8b8;font-size:13px;margin:auto 0;line-height:1.8}
 .chat-empty b{font-size:26px;display:block;margin-bottom:6px}
 #lightbox{
@@ -638,7 +644,19 @@ button{white-space:nowrap!important;flex:none}
       </div>
       <div id="chat-body"></div>
       <div class="chat-foot">
+        <div id="chat-reply-bar" style="display:none;flex:none;padding:8px 12px 0"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:7px 10px">
+          <span style="font-size:12px;color:#ff9ecb;flex:none">↩ 답장</span>
+          <span id="chat-reply-tx" style="flex:1;min-width:0;font-size:12.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+          <button class="cdx" style="border:none;background:none;color:var(--tx2);font-size:12px;cursor:pointer" onclick="cancelChatReply()">✕</button>
+        </div></div>
+        <div id="chat-photo-bar" style="display:none;flex:none;padding:8px 12px 0"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:7px 10px">
+          <span style="font-size:12px;color:#ff9ecb;flex:none">📷 사진 첨부</span>
+          <span id="chat-photo-tx" style="flex:1;min-width:0;font-size:12.5px;color:var(--tx2)"></span>
+          <button class="cdx" style="border:none;background:none;color:var(--tx2);font-size:12px;cursor:pointer" onclick="clearChatPhoto()">✕</button>
+        </div></div>
+        <input type="file" id="chat-file" accept="image/*" class="hidden">
         <input id="chat-in" placeholder="메시지 입력…" maxlength="300" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-att" onclick="document.getElementById('chat-file').click()">📷</button>
         <button class="chat-send" onclick="sendMsg()">➤</button>
       </div>
     </div>
@@ -1848,23 +1866,51 @@ function renderChat(){
     out+='<div class="chat-row'+(mine?' mine':'')+'">'
       +(mine?'':'<div class="chat-ava">'+avaOf(m.uid,m.name)+'</div>')
       +'<div class="chat-wrap">'+(mine?'':'<div class="chat-name">'+esc(m.name||'?')+'</div>')
-      +'<div class="chat-bub">'+esc(m.text||'').replace(/\n/g,'<br>')+'</div>'
-      +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
+      +'<div class="chat-bub" id="msg-'+m.id+'">'
+        +(m.replyTo?'<div class="chat-quote" onclick="jumpToMsg(\''+m.replyTo.id+'\')"><b>'+esc(m.replyTo.name)+'</b> '+esc((m.replyTo.tx||'').slice(0,50))+'</div>':'')
+        +(m.imgB64?'<img src="'+m.imgB64+'" onclick="peekChatImg(this.src)" alt="">':'')
+        +(m.text?esc(m.text).replace(/\n/g,'<br>'):'')
+      +'</div>'
+      +'<div class="chat-meta">'+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="startChatReply(\''+m.id+'\')">답장</button>':'')+(coupleDoc&&coupleDoc.id?'<button class="cdx" onclick="delMsg(\''+m.id+'\')">삭제</button>':'')+fmtTime(m.ts)+'</div>'
       +'</div></div>';
   });
   const stick=box.scrollHeight-box.scrollTop<80||box.scrollTop===0;
   box.innerHTML=out;
   if(stick)box.scrollTop=box.scrollHeight;
 }
+let chatPhotoB64=null,chatReplyTo=null;
+$('chat-file').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{chatPhotoB64=await compressImage(f,1000,0.62);
+    $('chat-photo-tx').textContent='선택 완료 ('+Math.round(chatPhotoB64.length*3/4/1024)+'KB)';
+    $('chat-photo-bar').style.display='flex';
+  }catch(err){toast('사진을 못 읽었어요');}
+  e.target.value='';
+});
+function clearChatPhoto(){chatPhotoB64=null;$('chat-photo-bar').style.display='none';}
+function startChatReply(id){
+  const m=chats.find(x=>x.id===id);if(!m)return;
+  chatReplyTo={id,name:m.name||'?'};
+  $('chat-reply-tx').textContent=(m.text?m.text:(m.imgB64?'📷 사진':''))||'';
+  $('chat-reply-bar').style.display='flex';
+  $('chat-in').focus();
+}
+function cancelChatReply(){chatReplyTo=null;$('chat-reply-bar').style.display='none';}
 async function sendMsg(){
   const inp=$('chat-in');const t=(inp.value||'').trim();
-  if(!t){toast('메시지를 입력해 주세요');return;}
+  if(!t&&!chatPhotoB64){toast('메시지를 입력해 주세요');return;}
+  const doc={uid:me.uid,name:me.displayName||userDoc.nickname||'나',text:t,ts:Date.now()};
+  if(chatPhotoB64)doc.imgB64=chatPhotoB64;
+  if(chatReplyTo)doc.replyTo=chatReplyTo;
   try{
-    await db.collection('couples').doc(coupleDoc.id).collection('chat').add({
-      uid:me.uid,name:me.displayName||userDoc.nickname||'나',text:t,ts:Date.now()
-    });
-    inp.value='';
+    await db.collection('couples').doc(coupleDoc.id).collection('chat').add(doc);
+    inp.value='';clearChatPhoto();cancelChatReply();
   }catch(e){toast('전송 실패: '+(e.code||''));}
+}
+function peekChatImg(src){$('lb-img').src=src;$('lightbox').classList.add('on');$('lb-cap').textContent='';$('lb-del').classList.add('hidden');$('lb-prev').disabled=true;$('lb-next').disabled=true;}
+function jumpToMsg(id){
+  const el=document.getElementById('msg-'+id);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('chat-flash');void el.offsetWidth;el.classList.add('chat-flash');}
 }
 async function delMsg(id){
   const m=chats.find(x=>x.id===id);if(!m)return;
