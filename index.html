@@ -1391,8 +1391,9 @@ function pickGame(g){
   if(tp)tp.style.display=g==='tama'?'block':'none';
   if(op)op.style.display=g==='omok'?'block':'none';
   if(g==='tama')renderTama();else renderOmok();
+  if($('game-players'))$('game-players').style.display=(g==='omok')?'':'none';
 }
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok')renderOmok();else renderTama();renderGamePlayers();}}
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();if($('game-players'))$('game-players').style.display='';renderGamePlayers();}else{renderTama();if($('game-players'))$('game-players').style.display='none';}}}
 // 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
 function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
 function gpXpOf(s){return s.wins*5+s.losses*1;}
