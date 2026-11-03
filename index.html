@@ -1044,7 +1044,7 @@ function enterApp(coupleId){
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();updateBadges();},e=>console.error(e)));
   const ids=db.collection('couples').doc(coupleId).collection('ideas');
   unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
-  unsubs.push(db.collection('couples').doc(coupleId).collection('games').onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
+  unsubs.push(db.collection('couples').doc(coupleId).collection('games').orderBy('ts','desc').limit(6).onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
   const cht=db.collection('couples').doc(coupleId).collection('chat');
   unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
     chats=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1248,7 +1248,7 @@ function renderGamePlayers(){
   $('gp-rec').textContent='🏆 전적 '+s1.wins+'승 '+s1.losses+'패 vs '+s2.wins+'승 '+s2.losses+'패 · 승리 +5XP, 패배 +1XP (10XP마다 레벨업)';
 }
 function renderGameTab_old(){}
-function omokBoardOf(){return omokDoc&&omokDoc.length?omokDoc[0]:null;}
+function omokBoardOf(){if(!omokDoc||!omokDoc.length)return null;return omokDoc.find(x=>!x.winner)||omokDoc[0];}
 function omokReset(){
   const d=omokBoardOf();
   if(d&&!d.winner&&!confirm('진행 중인 대국을 버리고 새로 시작할까요?'))return;
