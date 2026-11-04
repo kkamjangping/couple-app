@@ -1515,15 +1515,19 @@ function ladBuild(){
   if(raw.length<2){toast('항목을 2개 이상 입력해 주세요');return;}
   if(raw.length>8){toast('항목은 최대 8개까지 가능해요');return;}
   const n=raw.length;
-  const rows=6+Math.floor(Math.random()*4); // 가로줄 난이도
+  const rows=8+Math.floor(Math.random()*5); // 가로줄 수 (일반적인 촘촘한 사다리)
   const rungs=[];
   for(let r=0;r<rows;r++){
     const row=[];
-    let c=0;
-    while(c<n-1){
-      if(Math.random()<.5){row.push(c);c+=2;}else c++;
+    for(let c=0;c<n-1;c++){
+      if(Math.random()<.55)row.push(c);
     }
     rungs.push(row);
+  }
+  // 바로 위 행과 완전히 같은 배치 방지(한 칸 사다리가 티 안 나게)
+  if(rungs.length>1&&JSON.stringify(rungs[rungs.length-1])===JSON.stringify(rungs[rungs.length-2])){
+    const last=rungs[rungs.length-1];
+    if(last.length)rungs[rungs.length-1]=[Math.min(last[0]+1,n-2)];
   }
   ladData={items:raw,rungs};ladDone=false;
   const g=$('lad-go');if(g)g.disabled=false;
@@ -1555,13 +1559,19 @@ function ladDraw(){
   const{paths,colX,top,H}=ladPaths();
   const W=300,pad=26;
   let svg='<svg viewBox="0 0 300 '+(H+10)+'" style="width:100%;height:auto;display:block">';
-  svg+='<line x1="14" y1="'+top+'" x2="14" y2="'+H+'" stroke="rgba(255,255,255,.25)" stroke-width="2"/>';
-  svg+='<line x1="'+(W-14)+'" y1="'+top+'" x2="'+(W-14)+'" y2="'+H+'" stroke="rgba(255,255,255,.25)" stroke-width="2"/>';
+  // 일반적인 사다리 프레임: 양끝 기둥 + 전체 폭 가로막대
+  svg+='<rect x="11" y="'+(top-6)+'" width="5" height="'+(H-top+12)+'" rx="2.5" fill="rgba(255,255,255,.30)"/>';
+  svg+='<rect x="'+(W-16)+'" y="'+(top-6)+'" width="5" height="'+(H-top+12)+'" rx="2.5" fill="rgba(255,255,255,.30)"/>';
+  const barH=Math.max(18,Math.round((H-top)/Math.max(1,ladData.rungs.length)));
+  for(let y=top;y<=H+0.1;y+=barH){
+    svg+='<rect x="11" y="'+(y-2)+'" width="'+(W-22)+'" height="4" rx="2" fill="rgba(255,255,255,.18)"/>';
+  }
+  // 실제 경로용 가로줄(은은하게)
   ladData.rungs.forEach((row,r)=>{
     const y=top+(r+1)*26;
     row.forEach(c=>{
       const x1=colX(c),x2=colX(c+1);
-      svg+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="rgba(255,255,255,.22)" stroke-width="2"/>';
+      svg+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="rgba(255,95,168,.55)" stroke-width="3" stroke-linecap="round"/>';
     });
   });
   const cols=['#ff5fa8','#7db8ff'];
@@ -1569,8 +1579,10 @@ function ladDraw(){
     let d='M '+pts.map(p=>p[0]+' '+p[1]).join(' L ');
     svg+='<path id="ladp'+s+'" d="'+d+'" fill="none" stroke="'+cols[s%2]+'" stroke-width="2.5" stroke-dasharray="700" stroke-dashoffset="700" style="transition:stroke-dashoffset 1.6s ease"/>';
   });
-  for(let s=0;s<n;s++){
-    svg+='<circle cx="'+colX(s)+'" cy="'+top+'" r="5" fill="'+cols[s%2]+'"/>';
+  svg+='<text x="'+colX(0)+'" y="'+(top-11)+'" text-anchor="middle" font-size="11">👧</text>';
+  svg+='<text x="'+colX(1)+'" y="'+(top-11)+'" text-anchor="middle" font-size="11">👦</text>';
+  for(let s=2;s<n;s++){
+    svg+='<circle cx="'+colX(s)+'" cy="'+top+'" r="4" fill="rgba(255,255,255,.4)"/>';
   }
   for(let s=0;s<n;s++){
     svg+='<text x="'+colX(s)+'" y="'+(H+9)+'" text-anchor="middle" font-size="8.5" fill="'+(ladDone&&s===0?'#ffd27e':ladDone?'#ffa4cd':'rgba(255,255,255,.6)')+'" font-weight="700">'+esc(ladDone?ladData.items[s]:String(s+1))+'</text>';
