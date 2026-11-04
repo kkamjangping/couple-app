@@ -768,7 +768,7 @@ button{white-space:nowrap!important}
       <div id="tama-wrap"><div class="card" id="tama-box">
         <h2 class="sec">🐾 우리 집 지푸라기</h2>
         <div style="text-align:center;padding:6px 0 2px">
-          <div id="tama-stage" style="display:inline-block;position:relative;width:190px;height:190px;background:radial-gradient(circle at 50% 40%,#241a24,#161016);border-radius:24px;border:1px solid rgba(255,255,255,.08);cursor:pointer;touch-action:manipulation" onclick="tamaPet()">
+          <div id="tama-stage" style="display:inline-block;position:relative;width:190px;height:190px;background:radial-gradient(circle at 50% 40%,#241a24,#161016);border-radius:24px;border:1px solid rgba(255,255,255,.08);touch-action:manipulation">
             <canvas id="tama-cv" width="380" height="380" style="width:100%;height:100%;image-rendering:pixelated"></canvas>
             <div id="tama-bubble" style="position:absolute;top:6px;right:6px;background:#fff;color:#2b0a0f;font-family:inherit;font-size:13px;font-weight:800;padding:5px 10px;border-radius:12px;opacity:0;transition:opacity .25s;pointer-events:none">야옹</div>
             <div id="tama-hearts"></div>
@@ -777,10 +777,7 @@ button{white-space:nowrap!important}
           <div style="height:10px;background:#241a20;border-radius:8px;overflow:hidden;margin:4px 10%"><div id="tama-xp" style="height:100%;width:0%;background:linear-gradient(90deg,#ff7ab8,#ff2e88);border-radius:8px;transition:width .4s"></div></div>
           <div id="tama-xp-tx" style="font-size:11px;color:var(--tx2);margin-top:2px"></div>
         </div>
-        <div style="display:flex;gap:8px;margin:10px 0 6px">
-          <button class="btn-sub" style="flex:1;padding:11px 8px;font-weight:700" id="tama-pet-btn" onclick="tamaPet(event,true)">🖐️ 쓰다듬기</button>
-        </div>
-        <label class="lb" style="margin-top:8px">간식 주기 (해시태그처럼 입력 · Enter)</label>
+        <label class="lb" style="margin-top:8px">간식 주기 (해시태그 · 같은 간식 3번까지)</label>
         <div style="display:flex;gap:6px;align-items:stretch">
           <input id="tama-snack" placeholder="예) 츄르 참치 치킨" maxlength="20" autocomplete="off" style="flex:1;min-width:0">
           <button type="button" class="btn-add" onclick="tamaFeed()">🍖 주기</button>
@@ -1076,6 +1073,7 @@ function enterApp(coupleId){
     }
     coupleDoc={id:doc.id,...doc.data()};
     partnerUid=(coupleDoc.members||[]).find(x=>x!==me.uid)||null;
+    if(coupleDoc.tama&&!coupleDoc.tama.resetv2)tamaResetOnce();
     renderHeader();
     if($('pane-game')&&$('pane-game').classList.contains('on'))renderGameTab();
     watchMe();
@@ -1268,7 +1266,7 @@ async function tamaRename(){
   await db.collection('couples').doc(coupleDoc.id).set({tamaName:t},{merge:true});
   toast('이름이 "'+t+'"가 됐어요 🐾');
 }
-function tamaXpOf(s){return (s.feed||0)*8+(s.pet||0)*3;}
+function tamaXpOf(s){return (s.feed||0)*8;}
 function tamaLvOf(xp){return Math.max(1,Math.floor(xp/20)+1);}
 async function tamaAction(kind){
   if(tamaBusy)return;tamaBusy=true;
@@ -1276,31 +1274,48 @@ async function tamaAction(kind){
   try{
     const t=await db.collection('couples').doc(coupleDoc.id).get();
     const cur=t.data()||{};
-    const st=cur.tama||{feed:0,pet:0,snacks:{},lastTs:0};
+    const st=cur.tama||{feed:0,snacks:{},lastTs:0};
     const beforeLv=tamaLvOf(tamaXpOf(st));
-    if(kind==='pet'){st.pet=(st.pet||0)+1;}
-    else{
-      const v=($('tama-snack').value||'').trim().slice(0,20);
-      if(!v){toast('간식 이름을 입력해 주세요');tamaBusy=false;return;}
-      st.snacks=st.snacks||{};
-      st.snacks[v]=(st.snacks[v]||0)+1;
-      st.feed=(st.feed||0)+1;
-      $('tama-snack').value='';
-    }
+    const v=($('tama-snack').value||'').trim().slice(0,20);
+    if(!v){toast('간식 이름을 입력해 주세요');tamaBusy=false;return;}
+    st.snacks=st.snacks||{};
+    const curN=st.snacks[v]||0;
+    if(curN>=3){toast('🍖 #'+v+' 은(는) 이미 3단계예요 (최대 3번)');tamaBusy=false;return;}
+    st.snacks[v]=curN+1;
+    st.feed=(st.feed||0)+1;
+    $('tama-snack').value='';
     st.lastTs=Date.now();
     const afterLv=tamaLvOf(tamaXpOf(st));
     await db.collection('couples').doc(coupleDoc.id).update({tama:st,tamaName:cur.tamaName||'지푸라기'});
     tamaState=st;
-    if(kind==='pet')tamaCry('야옹');
-    else{tamaCry('콰삭');tamaHearts();}
+    tamaCry('콰삭');tamaHearts();
     if(afterLv>beforeLv)toast('🐾 '+tamaName()+'가 Lv.'+afterLv+'가 됐어요!');
     renderTama();
   }catch(e){toast('실패: '+(e.code||''));}
   tamaBusy=false;
   if(keepTab&&!(document.querySelector('.tabpane.on')||{id:''}).id.endsWith(keepTab)){goTab(keepTab);}
 }
-function tamaPet(ev,fromBtn){if(ev&&ev.target&&ev.target.closest&&ev.target.closest('.thumb-x'))return;tamaAction('pet');}
-function tamaFeed(){tamaAction('feed');}
+function tamaFeed(){return tamaAction('feed');}
+async function tamaDelSnack(name){
+  if(!coupleDoc)return;
+  try{
+    const t=await db.collection('couples').doc(coupleDoc.id).get();
+    const cur=t.data()||{};
+    const st=cur.tama||{feed:0,snacks:{},lastTs:0};
+    st.snacks=st.snacks||{};
+    delete st.snacks[name];
+    await db.collection('couples').doc(coupleDoc.id).update({tama:st,tamaName:cur.tamaName||'지푸라기'});
+    tamaState=st;renderTama();
+  }catch(e){toast('실패: '+(e.code||''));}
+}
+async function tamaResetOnce(){
+  try{
+    const st={feed:0,snacks:{},lastTs:Date.now(),resetv2:true};
+    coupleDoc.tama=st;tamaState=st;
+    await db.collection('couples').doc(coupleDoc.id).update({tama:st});
+    if($('pane-game')&&$('pane-game').classList.contains('on'))renderTama();
+  }catch(e){}
+}
 function tamaCry(txt){
   const b=$('tama-bubble');if(!b)return;
   b.textContent=txt;b.style.opacity=1;
@@ -1319,14 +1334,15 @@ function tamaHearts(){
 }
 function renderTama(){
   if(!$('tama-lv')||!coupleDoc)return;
-  tamaState=coupleDoc.tama||{feed:0,pet:0,snacks:{}};
+  tamaState=coupleDoc.tama||{feed:0,snacks:{}};
   const xp=tamaXpOf(tamaState),lv=tamaLvOf(xp);
   document.querySelector('#tama-box h2.sec').innerHTML='<span id="tama-name-lb">🐾 '+esc(tamaName())+'</span> <button class="cdx" style="border:none;background:none;color:#ff9ecb;font-size:11px;cursor:pointer" onclick="tamaRename()">✏️</button>';
   $('tama-lv').textContent='Lv.'+lv;
   $('tama-xp').style.width=Math.min(100,(xp%20)/20*100)+'%';
-  $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP · 간식 '+tamaState.feed+'회 · 쓰다듬기 '+tamaState.pet+'회';
+  $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP · 간식 '+tamaState.feed+'회';
   const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>b[1]-a[1]);
-  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip">🍖 '+esc(k)+' <b>'+n+'</b></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식 이력이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
+  const ssty=n=>n>=3?'background:linear-gradient(90deg,#ff2e88,#ff5fa8);color:#fff;font-weight:800;border:1px solid transparent;':n===2?'color:#ff5fa8;font-weight:800;border:1px solid rgba(255,46,136,.5);':'color:var(--tx);border:1px dashed rgba(255,255,255,.28);';
+  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip" style="'+ssty(n)+'">#'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 3px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
   tamaDrawIdle();
 }
 function tamaDrawIdle(){
