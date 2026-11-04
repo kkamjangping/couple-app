@@ -548,6 +548,9 @@ button{white-space:nowrap!important}
 .idea .ick{width:24px;height:24px;border-radius:999px;border:2px solid rgba(255,255,255,.32);background:transparent;cursor:pointer;flex:none;color:#fff;font-weight:900;font-size:13px;line-height:1;transition:all .2s;margin-top:1px}
 .idea .ick.on{background:linear-gradient(135deg,#ff7ab8,#ff2e88);border-color:transparent;box-shadow:0 2px 10px rgba(255,46,136,.45)}
 .idea .iwho{color:#ff8ab8!important;font-size:11px!important;font-weight:800}
+.chip .sck{width:17px;height:17px;border-radius:999px;border:1.5px solid rgba(255,255,255,.45);background:transparent;color:transparent;font-size:10px;font-weight:900;line-height:1;cursor:pointer;font-family:inherit;padding:0;margin-right:1px;flex:none;transition:all .15s}
+.chip .sck.on{background:linear-gradient(135deg,#ff7ab8,#ff2e88);border-color:transparent;color:#fff}
+.chip.eaten{opacity:.5;text-decoration:line-through}
 .isec{font-size:12px;font-weight:800;color:var(--tx2);margin:12px 0 4px;display:flex;align-items:center;gap:6px}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
 </style>
@@ -1286,7 +1289,7 @@ async function tamaAction(kind){
   try{
     const t=await db.collection('couples').doc(coupleDoc.id).get();
     const cur=t.data()||{};
-    const st=cur.tama||{feed:0,snacks:{},lastTs:0};
+    const st=cur.tama||{feed:0,snacks:{},eaten:{},lastTs:0};
     const beforeLv=tamaLvOf(tamaXpOf(st));
     const v=($('tama-snack').value||'').trim().slice(0,20);
     if(!v){toast('간식 이름을 입력해 주세요');tamaBusy=false;return;}
@@ -1308,6 +1311,18 @@ async function tamaAction(kind){
   if(keepTab&&!(document.querySelector('.tabpane.on')||{id:''}).id.endsWith(keepTab)){goTab(keepTab);}
 }
 function tamaFeed(){return tamaAction('feed');}
+async function tamaToggleSnack(name){
+  if(!coupleDoc)return;
+  try{
+    const t=await db.collection('couples').doc(coupleDoc.id).get();
+    const cur=t.data()||{};
+    const st=cur.tama||{feed:0,snacks:{},lastTs:0};
+    st.eaten=st.eaten||{};
+    if(st.eaten[name])delete st.eaten[name];else st.eaten[name]=true;
+    await db.collection('couples').doc(coupleDoc.id).update({tama:st,tamaName:cur.tamaName||'지푸라기'});
+    tamaState=st;renderTama();
+  }catch(e){toast('실패: '+(e.code||''));}
+}
 async function tamaDelSnack(name){
   if(!coupleDoc)return;
   try{
@@ -1322,7 +1337,7 @@ async function tamaDelSnack(name){
 }
 async function tamaResetOnce(){
   try{
-    const st={feed:0,snacks:{},lastTs:Date.now(),resetv2:true};
+    const st={feed:0,snacks:{},eaten:{},lastTs:Date.now(),resetv2:true};
     coupleDoc.tama=st;tamaState=st;
     await db.collection('couples').doc(coupleDoc.id).update({tama:st});
     if($('pane-game')&&$('pane-game').classList.contains('on'))renderTama();
@@ -1346,15 +1361,16 @@ function tamaHearts(){
 }
 function renderTama(){
   if(!$('tama-lv')||!coupleDoc)return;
-  tamaState=coupleDoc.tama||{feed:0,snacks:{}};
+  tamaState=coupleDoc.tama||{feed:0,snacks:{},eaten:{}};
   const xp=tamaXpOf(tamaState),lv=tamaLvOf(xp);
   document.querySelector('#tama-box h2.sec').innerHTML='<span id="tama-name-lb">🐾 '+esc(tamaName())+'</span> <button class="cdx" style="border:none;background:none;color:#ff9ecb;font-size:11px;cursor:pointer" onclick="tamaRename()">✏️</button>';
   $('tama-lv').textContent='Lv.'+lv;
   $('tama-xp').style.width=Math.min(100,(xp%20)/20*100)+'%';
   $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP';
-  const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>b[1]-a[1]);
+  const eaten=tamaState.eaten||{};
+  const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>(eaten[a[0]]?1:0)-(eaten[b[0]]?1:0)||b[1]-a[1]);
   const ssty=n=>n>=3?'background:linear-gradient(90deg,#ff2e88,#ff5fa8);color:#fff;font-weight:800;border:1px solid transparent;':n===2?'color:#ff5fa8;font-weight:800;border:1px solid rgba(255,46,136,.5);':'color:var(--tx);border:1px dashed rgba(255,255,255,.28);';
-  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip" style="'+ssty(n)+'">'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 3px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
+  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip'+(eaten[k]?' eaten':'')+'" style="'+ssty(n)+'"><button class="sck'+(eaten[k]?' on':'')+'" title="먹음 표시" onclick="tamaToggleSnack(\''+esc(k)+'\')">✓</button>'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 3px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
   tamaDrawIdle();
 }
 function tamaDrawIdle(){
