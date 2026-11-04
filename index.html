@@ -555,6 +555,33 @@ button{white-space:nowrap!important}
 .chip.eaten{opacity:.5;text-decoration:line-through}
 .isec{font-size:12px;font-weight:800;color:var(--tx2);margin:12px 0 4px;display:flex;align-items:center;gap:6px}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
+
+/* ── v97 캘린더 리디자인 ── */
+.cal{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.cal-head{margin-bottom:12px}
+.cal-head b{font-size:17px;font-weight:800;letter-spacing:.3px}
+.cal-head button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#ffb3d1;border-radius:999px;width:34px;height:34px;font-size:16px;transition:.15s}
+.cal-head button:hover{background:rgba(255,46,136,.16);border-color:rgba(255,46,136,.5)}
+.cal-grid{gap:4px;grid-auto-rows:96px}
+.cal-grid .dow{font-size:11px;font-weight:800;color:#a4879b;padding:8px 0 2px;letter-spacing:.5px}
+.dow.sun{color:#ff8fa0}.dow.sat{color:#9fb6ff}
+.cal-grid .cel{background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:7px 4px 4px;transition:.15s}
+.cal-grid .cel:hover{background:rgba(255,46,136,.06);border-color:rgba(255,46,136,.28)}
+.cal-grid .cel.dim{background:transparent;border-color:transparent}
+.cal-grid .cel.today .n-date{background:linear-gradient(135deg,#ff7ab8,#ff2e88);color:#fff;border-radius:999px;width:22px;margin:0 auto;font-weight:800}
+.cal-grid .cel.sel{border-color:rgba(255,46,136,.7);background:rgba(255,46,136,.09);box-shadow:0 0 0 1px rgba(255,46,136,.3),0 4px 14px rgba(255,46,136,.15)}
+.cal-grid .cel .num{width:100%;align-items:stretch;padding:0 2px}
+.cal-grid .cel .num .n-date{align-self:center;font-weight:700}
+.cal-grid .cel.recday::after{content:'';position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:999px;background:#7ddba3}
+.cal-grid .cel .dots-row{display:flex;justify-content:center;gap:3px;margin:2px 0;min-height:5px}
+.cal-grid .cel .dot{width:5px;height:5px;border-radius:999px;background:#ff5fa8;flex:none}
+.cal-grid .cel .dot.ann{background:#ffd27e;width:6px;height:6px}
+.cal-grid .cel .ann-lb{align-self:stretch;background:rgba(255,210,126,.13);color:#ffd27e;border:1px solid rgba(255,210,126,.4);border-radius:5px;font-size:10px;font-weight:800;padding:1px 3px;margin-top:2px;line-height:1.35;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-grid .cel .ev-lb{align-self:stretch;background:rgba(255,46,136,.17);color:#ffa4cd;border-left:2.5px solid #ff2e88;border-radius:4px;font-size:10.5px;font-weight:600;padding:1.5px 4px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-grid .cel.sel .ev-lb{background:rgba(255,46,136,.28)}
+.cal-legend{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11px;color:#a4879b}
+.cal-legend .lg-dot{display:inline-block;width:7px;height:7px;border-radius:999px;margin-right:4px;vertical-align:middle}
+.lg-ann{background:#ffd27e}.lg-ev{background:#ff2e88}.lg-rec{background:#7ddba3}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -725,6 +752,7 @@ button{white-space:nowrap!important}
           <button onclick="calMove(1)">›</button>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend"><span><i class="lg-dot lg-ann"></i>기념일</span><span><i class="lg-dot lg-ev"></i>일정</span><span><i class="lg-dot lg-rec"></i>기록</span></div>
       </div>
       <div class="day-panel">
         <h3 id="sel-title"></h3>
@@ -1932,7 +1960,7 @@ function renderCal(){
       }
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,7))+'</div>';
     }
-    (hasAnn?evs.slice(0,2):evs.slice(0,3)).forEach(e=>{
+    evs.slice(0,hasAnn?3:4).forEach(e=>{
       inner+='<div class="ev-lb">'+esc((e.title||'').slice(0,6))+'</div>';
     });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
