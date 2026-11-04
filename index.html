@@ -1155,7 +1155,7 @@ function enterApp(coupleId){
   unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
   unsubs.push(db.collection('couples').doc(coupleId).collection('games').orderBy('ts','desc').limit(6).onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
   const cht=db.collection('couples').doc(coupleId).collection('chat');
-  unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
+  unsubs.push(cht.orderBy('ts').onSnapshot(s=>{
     const seen={},dedup=[];
     s.docs.forEach(d=>{if(!seen[d.id]){seen[d.id]=1;dedup.push(d);}});
     chats=dedup.map(d=>({id:d.id,...d.data()}));
