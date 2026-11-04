@@ -777,7 +777,7 @@ button{white-space:nowrap!important}
           <div style="height:10px;background:#241a20;border-radius:8px;overflow:hidden;margin:4px 10%"><div id="tama-xp" style="height:100%;width:0%;background:linear-gradient(90deg,#ff7ab8,#ff2e88);border-radius:8px;transition:width .4s"></div></div>
           <div id="tama-xp-tx" style="font-size:11px;color:var(--tx2);margin-top:2px"></div>
         </div>
-        <label class="lb" style="margin-top:8px">간식 주기 (해시태그 · 같은 간식 3번까지)</label>
+        <label class="lb" style="margin-top:8px">간식 주기 (같은 간식 3번까지)</label>
         <div style="display:flex;gap:6px;align-items:stretch">
           <input id="tama-snack" placeholder="예) 츄르 참치 치킨" maxlength="20" autocomplete="off" style="flex:1;min-width:0">
           <button type="button" class="btn-add" onclick="tamaFeed()">🍖 주기</button>
@@ -1339,7 +1339,7 @@ function renderTama(){
   document.querySelector('#tama-box h2.sec').innerHTML='<span id="tama-name-lb">🐾 '+esc(tamaName())+'</span> <button class="cdx" style="border:none;background:none;color:#ff9ecb;font-size:11px;cursor:pointer" onclick="tamaRename()">✏️</button>';
   $('tama-lv').textContent='Lv.'+lv;
   $('tama-xp').style.width=Math.min(100,(xp%20)/20*100)+'%';
-  $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP · 간식 '+tamaState.feed+'회';
+  $('tama-xp-tx').textContent='XP '+xp+' · 다음 레벨까지 '+(20-xp%20)+'XP';
   const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>b[1]-a[1]);
   const ssty=n=>n>=3?'background:linear-gradient(90deg,#ff2e88,#ff5fa8);color:#fff;font-weight:800;border:1px solid transparent;':n===2?'color:#ff5fa8;font-weight:800;border:1px solid rgba(255,46,136,.5);':'color:var(--tx);border:1px dashed rgba(255,255,255,.28);';
   $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip" style="'+ssty(n)+'">'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 3px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
