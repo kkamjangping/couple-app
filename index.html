@@ -572,16 +572,16 @@ button{white-space:nowrap!important}
 .cal-grid .cel.sel{border-color:rgba(255,46,136,.7);background:rgba(255,46,136,.09);box-shadow:0 0 0 1px rgba(255,46,136,.3),0 4px 14px rgba(255,46,136,.15)}
 .cal-grid .cel .num{width:100%;align-items:stretch;padding:0 2px}
 .cal-grid .cel .num .n-date{align-self:center;font-weight:700}
-.cal-grid .cel.recday::after{content:'';position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:999px;background:#7ddba3}
+.cal-grid .cel.recday .n-date{background:linear-gradient(transparent 42%,rgba(255,210,126,.55) 42%,rgba(255,210,126,.55) 88%,transparent 88%);border-radius:3px;padding:0 3px}
 .cal-grid .cel .dots-row{display:flex;justify-content:center;gap:3px;margin:2px 0;min-height:5px}
 .cal-grid .cel .dot{width:5px;height:5px;border-radius:999px;background:#ff5fa8;flex:none}
 .cal-grid .cel .dot.ann{background:#ffd27e;width:6px;height:6px}
-.cal-grid .cel .ann-lb{align-self:stretch;background:rgba(255,210,126,.13);color:#ffd27e;border:1px solid rgba(255,210,126,.4);border-radius:5px;font-size:10px;font-weight:800;padding:1px 3px;margin-top:2px;line-height:1.35;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.cal-grid .cel .ev-lb{align-self:stretch;background:rgba(255,46,136,.17);color:#ffa4cd;border-left:2.5px solid #ff2e88;border-radius:4px;font-size:10.5px;font-weight:600;padding:1.5px 4px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-grid .cel .ann-lb{align-self:stretch;width:100%;background:rgba(255,210,126,.13);color:#ffd27e;border:1px solid rgba(255,210,126,.4);border-radius:5px;font-size:10px;font-weight:800;padding:2px 5px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box}
+.cal-grid .cel .ev-lb{align-self:stretch;background:rgba(255,46,136,.17);color:#ffa4cd;border-radius:5px;font-size:10.5px;font-weight:600;padding:2px 5px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .cal-grid .cel.sel .ev-lb{background:rgba(255,46,136,.28)}
 .cal-legend{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11px;color:#a4879b}
 .cal-legend .lg-dot{display:inline-block;width:7px;height:7px;border-radius:999px;margin-right:4px;vertical-align:middle}
-.lg-ann{background:#ffd27e}.lg-ev{background:#ff2e88}.lg-rec{background:#7ddba3}
+.lg-ann{background:#ffd27e}.lg-ev{background:#ff2e88}.lg-hl{width:12px;height:9px;border-radius:2px;background:linear-gradient(transparent 42%,rgba(255,210,126,.65) 42%,rgba(255,210,126,.65) 88%,transparent 88%);display:inline-block;margin-right:4px;vertical-align:middle}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -752,7 +752,7 @@ button{white-space:nowrap!important}
           <button onclick="calMove(1)">›</button>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
-        <div class="cal-legend"><span><i class="lg-dot lg-ann"></i>기념일</span><span><i class="lg-dot lg-ev"></i>일정</span><span><i class="lg-dot lg-rec"></i>기록</span></div>
+        <div class="cal-legend"><span><i class="lg-dot lg-ann"></i>기념일</span><span><i class="lg-dot lg-ev"></i>일정</span><span><i class="lg-hl"></i>기록한 날</span></div>
       </div>
       <div class="day-panel">
         <h3 id="sel-title"></h3>
