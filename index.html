@@ -1060,7 +1060,7 @@ function genCode(){let s='';for(let i=0;i<6;i++)s+=CODE_CHARS[Math.floor(Math.ra
 /* ═══════════════════════════ 상태 ═══════════════════════════ */
 let me=null,userDoc=null,coupleDoc=null,partnerUid=null,partnerDoc=null;
 let unsubs=[];
-function detachAll(){watchersOn=false;unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
+function detachAll(){watchersOn=false;subsOn=false;unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
 function registerAuthWatch(){auth.onAuthStateChanged(async u=>{
   detachAll();
   if(!u){me=null;show('view-auth');return;}
@@ -1124,10 +1124,14 @@ async function joinByCode(){
 
 /* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
 let watchersOn=false;
+let subsOn=false;
 function enterApp(coupleId){
   if($('view-app')&&$('view-app').classList.contains('on'))return; // 이미 앱 안이면 재진입 금지(탭 보존)
+  subsOn=false;
   try{['home','photo','cal','idea'].forEach(k=>{if(localStorage.getItem('pc-seen-'+k)===null)localStorage.setItem('pc-seen-'+k,Date.now());});}catch(e){}
   show('view-app');goTab('cal');
+  if(subsOn)return;
+  subsOn=true;
   unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
     if(!doc.exists){ // 해제됨
       detachAll();
@@ -1152,7 +1156,9 @@ function enterApp(coupleId){
   unsubs.push(db.collection('couples').doc(coupleId).collection('games').orderBy('ts','desc').limit(6).onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
   const cht=db.collection('couples').doc(coupleId).collection('chat');
   unsubs.push(cht.orderBy('ts').limitToLast(200).onSnapshot(s=>{
-    chats=s.docs.map(d=>({id:d.id,...d.data()}));
+    const seen={},dedup=[];
+    s.docs.forEach(d=>{if(!seen[d.id]){seen[d.id]=1;dedup.push(d);}});
+    chats=dedup.map(d=>({id:d.id,...d.data()}));
     renderChat();updateChatBadge();
     if($('chat-view').classList.contains('on')){chatSeen=Date.now();localStorage.setItem('pc-chat-seen',chatSeen);updateChatBadge();}
   },e=>console.error(e)));
