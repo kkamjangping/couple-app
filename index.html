@@ -1016,7 +1016,7 @@ function genCode(){let s='';for(let i=0;i<6;i++)s+=CODE_CHARS[Math.floor(Math.ra
 /* ═══════════════════════════ 상태 ═══════════════════════════ */
 let me=null,userDoc=null,coupleDoc=null,partnerUid=null,partnerDoc=null;
 let unsubs=[];
-function detachAll(){unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
+function detachAll(){watchersOn=false;unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
 function registerAuthWatch(){auth.onAuthStateChanged(async u=>{
   detachAll();
   if(!u){me=null;show('view-auth');return;}
@@ -1079,7 +1079,9 @@ async function joinByCode(){
 }
 
 /* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
+let watchersOn=false;
 function enterApp(coupleId){
+  if($('view-app')&&$('view-app').classList.contains('on'))return; // 이미 앱 안이면 재진입 금지(탭 보존)
   try{['home','photo','cal','idea'].forEach(k=>{if(localStorage.getItem('pc-seen-'+k)===null)localStorage.setItem('pc-seen-'+k,Date.now());});}catch(e){}
   show('view-app');goTab('cal');
   unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
@@ -1093,8 +1095,7 @@ function enterApp(coupleId){
     if(coupleDoc.tama&&!coupleDoc.tama.resetv2)tamaResetOnce();
     renderHeader();
     if($('pane-game')&&$('pane-game').classList.contains('on'))renderGameTab();
-    watchMe();
-    watchPartner();
+    if(!watchersOn){watchersOn=true;watchMe();watchPartner();}
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
   unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();},e=>console.error(e)));
