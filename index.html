@@ -787,6 +787,7 @@ button{white-space:nowrap!important}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-lad" onclick="pickGame('lad')">🪜 사다리타기</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
         </div>
       </div>
@@ -843,7 +844,21 @@ button{white-space:nowrap!important}
       </div>
     </div>
     </div>
-    <div id="pane-set" class="tabpane">
+          <div id="lad-wrap" style="display:none"><div class="card" id="lad-box">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <h2 class="sec" style="margin:0">🪜 사다리타기</h2>
+          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="ladReset()">🔄 새로 만들기</button>
+        </div>
+        <p class="tiny" style="margin:0 0 8px">세로줄마다 항목을 한 줄씩 입력하고 (줄바꿈으로 구분) 사다리를 타보세요. 참가자는 자동으로 혜연·유준이 배정돼요.</p>
+        <label class="lb">항목 입력 (줄바꿈 구분)</label>
+        <textarea id="lad-in" rows="4" placeholder="예) 치킨 먹기&#10;집안일 전부&#10;용돈 뽑기&#10;영화 선택" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:var(--tx);font-family:inherit;font-size:13.5px;padding:9px 10px;resize:vertical;line-height:1.5"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-pri" style="flex:1;padding:11px 8px" onclick="ladBuild()">🪜 사다리 만들기</button>
+          <button class="btn-sub" style="padding:11px 14px" id="lad-go" onclick="ladGo()" disabled>▷ 결과 보기</button>
+        </div>
+        <div id="lad-stage" style="margin-top:10px"></div>
+      </div></div>
+      <div id="pane-set" class="tabpane">
       <div class="set-grp">
         <div class="card">
           <h2 class="sec" style="margin:0 0 4px">📊 우리는 지금</h2>
@@ -1447,22 +1462,112 @@ function tamaDrawIdle(){
 document.addEventListener('keydown',e=>{
   if(e.target&&e.target.id==='tama-snack'&&e.key==='Enter'&&!e.isComposing){e.preventDefault();tamaFeed();}
 });
+/* ═══════════════════════════ 게임랜드(사다리타기) ═══════════════════════════ */
+let ladData=null,ladDone=false;
+function renderLad(){
+  if(!$('lad-box'))return;
+  if(ladData)ladDraw();
+}
+function ladReset(){
+  ladData=null;ladDone=false;
+  if($('lad-stage'))$('lad-stage').innerHTML='';
+  const g=$('lad-go');if(g)g.disabled=true;
+  toast('항목을 입력하고 사다리를 만들어 주세요');
+}
+function ladBuild(){
+  const raw=($('lad-in').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(raw.length<2){toast('항목을 2개 이상 입력해 주세요');return;}
+  if(raw.length>8){toast('항목은 최대 8개까지 가능해요');return;}
+  const n=raw.length;
+  const rows=6+Math.floor(Math.random()*4); // 가로줄 난이도
+  const rungs=[];
+  for(let r=0;r<rows;r++){
+    const row=[];
+    let c=0;
+    while(c<n-1){
+      if(Math.random()<.45){row.push(c);c+=2;}else c++;
+    }
+    rungs.push(row);
+  }
+  ladData={items:raw,rungs};ladDone=false;
+  const g=$('lad-go');if(g)g.disabled=false;
+  ladDraw();
+}
+function ladPaths(){
+  const n=ladData.items.length,W=300,pad=26;
+  const colX=i=>pad+i*((W-pad*2)/(n-1));
+  const rowH=26,top=30,H=top+ (ladData.rungs.length+1)*rowH;
+  const paths=[];
+  for(let s=0;s<n;s++){
+    let x=colX(s),y=top,pts=[[x,y]];
+    for(let r=0;r<ladData.rungs.length;r++){
+      y=top+(r+1)*rowH;
+      const row=ladData.rungs[r];
+      const hit=row.indexOf(Math.round((x-pad)/((W-pad*2)/(n-1))));
+      if(hit>-1){
+        const nx=colX(hit);
+        pts.push([(x+nx)/2,y-rowH/2],[nx,y-rowH/2],[nx,y]);
+        x=nx;
+      }else pts.push([x,y]);
+    }
+    pts.push([x,H]);
+    paths.push(pts);
+  }
+  return{paths,colX,top,H,rowH};
+}
+function ladDraw(){
+  const st=$('lad-stage');if(!st||!ladData)return;
+  const n=ladData.items.length;
+  const{paths,colX,top,H}=ladPaths();
+  const W=300,pad=26;
+  let svg='<svg viewBox="0 0 300 '+(H+10)+'" style="width:100%;height:auto;display:block">';
+  svg+='<line x1="14" y1="'+top+'" x2="14" y2="'+H+'" stroke="rgba(255,255,255,.25)" stroke-width="2"/>';
+  svg+='<line x1="'+(W-14)+'" y1="'+top+'" x2="'+(W-14)+'" y2="'+H+'" stroke="rgba(255,255,255,.25)" stroke-width="2"/>';
+  ladData.rungs.forEach((row,r)=>{
+    const y=top+(r+1)*26;
+    row.forEach(c=>{
+      const x1=colX(c),x2=colX(c+1);
+      svg+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="rgba(255,255,255,.22)" stroke-width="2"/>';
+    });
+  });
+  const cols=['#ff5fa8','#7db8ff'];
+  paths.forEach((pts,s)=>{
+    let d='M '+pts.map(p=>p[0]+' '+p[1]).join(' L ');
+    svg+='<path id="ladp'+s+'" d="'+d+'" fill="none" stroke="'+cols[s%2]+'" stroke-width="2.5" stroke-dasharray="700" stroke-dashoffset="700" style="transition:stroke-dashoffset 1.6s ease"/>';
+  });
+  for(let s=0;s<n;s++){
+    svg+='<circle cx="'+colX(s)+'" cy="'+top+'" r="5" fill="'+cols[s%2]+'"/>';
+  }
+  for(let s=0;s<n;s++){
+    svg+='<text x="'+colX(s)+'" y="'+(H+9)+'" text-anchor="middle" font-size="8.5" fill="'+(ladDone&&s===0?'#ffd27e':ladDone?'#ffa4cd':'rgba(255,255,255,.6)')+'" font-weight="700">'+esc(ladDone?ladData.items[s]:String(s+1))+'</text>';
+  }
+  svg+='</svg>';
+  const names=['혜연','유준'];
+  let who='<div style="display:flex;gap:8px;margin-top:4px">'+names.map((nm,s)=>'<div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 9px;font-size:11.5px"><b style="color:'+(s===0?'#ff5fa8':'#7db8ff')+'">'+nm+'</b>'+(ladDone?'<span style="color:var(--tx2)"> · '+esc(ladData.items[s%ladData.items.length])+'</span>':'')+'</div>').join('')+'</div>';
+  st.innerHTML=svg+who;
+  if(ladDone)requestAnimationFrame(()=>{paths.forEach((p,s)=>{const el=document.getElementById('ladp'+s);if(el)el.style.strokeDashoffset='0';});});
+}
+function ladGo(){
+  if(!ladData||ladDone)return;
+  ladDone=true;ladDraw();
+  toast('🪜 결과가 나왔어요!');
+}
 /* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
 let omokDoc=null;
 const OMOK_N=15;
 let curGame='tama';
 function pickGame(g){
   curGame=g;
-  ['tama','omok'].forEach(k=>{
+  ['tama','omok','lad'].forEach(k=>{
     const b=$('gm-tab-'+k);if(b)b.classList.toggle('on',k===g);
   });
-  const tp=$('tama-wrap'),op=$('omok-wrap');
-  if(tp)tp.style.display=g==='tama'?'block':'none';
-  if(op)op.style.display=g==='omok'?'block':'none';
-  if(g==='tama')renderTama();else renderOmok();
-  if($('game-players'))$('game-players').style.display=(g==='omok')?'':'none';
+  ['tama','omok','lad'].forEach(k=>{
+    const w=$(k+'-wrap');if(w)w.style.display=(g===k)?'block':'none';
+  });
+  if(g==='tama')renderTama();else if(g==='omok')renderOmok();else renderLad();
+  if($('game-players'))$('game-players').style.display='none';
 }
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();if($('game-players'))$('game-players').style.display='';renderGamePlayers();}else{renderTama();if($('game-players'))$('game-players').style.display='none';}}}
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();}else if(curGame==='lad'){renderLad();}else{renderTama();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
 // 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
 function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
 function gpXpOf(s){return s.wins*5+s.losses*1;}
