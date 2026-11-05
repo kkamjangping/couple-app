@@ -567,6 +567,17 @@ button{white-space:nowrap!important}
 .pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:2px 0 6px}
 .pm-empty{grid-column:1/-1;text-align:center;color:var(--tx2);font-size:12.5px;padding:18px 0}
 .pm-grid .ph{aspect-ratio:1;border-radius:10px;object-fit:cover;width:100%;cursor:zoom-in;background:#f8e8eb}
+
+/* ── v120 지뢰찾기 ── */
+.mine-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:10px;max-width:420px}
+.mcell{aspect-ratio:1;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.10);font-size:13px;font-weight:800;line-height:1;padding:0;cursor:pointer;-webkit-touch-callout:none;user-select:none;color:#fff;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.mcell:active{background:rgba(255,255,255,.2)}
+.mcell.open{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.06)}
+.mcell.fl{background:rgba(255,46,136,.18)}
+.mcell.boom{background:rgba(255,46,136,.55)}
+.mcell.mine{background:rgba(255,46,136,.25)}
+.mcell.n1{color:#7ec8ff}.mcell.n2{color:#8be28b}.mcell.n3{color:#ff8a8a}.mcell.n4{color:#c39bff}.mcell.n5{color:#ffd27e}.mcell.n6{color:#7ee0d8}.mcell.n7{color:#fff}.mcell.n8{color:#d9a8b8}
+#mine-flag.on{color:#fff!important;background:linear-gradient(135deg,rgba(255,95,168,.35),rgba(200,31,14,.3))!important;border-color:rgba(255,46,136,.55)!important}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
 
 /* ── v97 캘린더 리디자인 ── */
@@ -810,7 +821,7 @@ button{white-space:nowrap!important}
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-lad" onclick="pickGame('lad')">🪜 사다리타기</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-mine" onclick="pickGame('mine')">💣 지뢰찾기</button>
         </div>
       </div>
       <div class="card" id="game-players">
@@ -881,6 +892,20 @@ button{white-space:nowrap!important}
         </div>
         <div id="lad-stage" style="margin-top:10px"></div>
       </div></div>
+      <div id="mine-wrap" style="display:none"><div class="card" id="mine-box">
+        <h2 class="sec" style="margin-top:0">💣 지뢰찾기</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="chip" id="mine-mines">💣 10</span>
+          <span class="chip" id="mine-time">⏱ 0초</span>
+          <button class="btn-sub" id="mine-flag" style="padding:7px 12px;font-size:12px" onclick="mineToggleFlag()">🚩 깃발 모드</button>
+          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="mineNewGame()">🔄 새 게임</button>
+        </div>
+        <div id="mine-msg" style="font-size:13.5px;font-weight:800;color:#ff8ab8;margin-top:8px;min-height:19px"></div>
+        <div id="mine-start" class="tiny" style="margin-top:10px">아무 칸이나 눌러서 시작! 첫 칸은 절대 지뢰가 아니에요 🍀<br>길게 누르거나 🚩 깃발 모드로 지뢰 표시 (9×9 · 지뢰 10개)</div>
+        <div class="mine-grid" id="mine-grid"></div>
+        <div id="mine-best" style="font-size:12px;color:#d9a8b8;font-weight:700;margin-top:10px"></div>
+      </div></div>
+      
       <div id="pane-set" class="tabpane">
       <div class="set-grp">
         <div class="card">
@@ -1639,22 +1664,116 @@ function ladGo(){
   ladDone=true;ladDraw();
   toast('🪜 결과가 나왔어요!');
 }
+/* ═══════════════════════════ 게임랜드(지뢰찾기) ═══════════════════════════ */
+const MN=9,MINES=10;
+let mineState=null,mineTimer=null;
+function stopMineTimer(){if(mineTimer){try{clearInterval(mineTimer)}catch(e){}mineTimer=null;}}
+function startMineTimer(){stopMineTimer();mineTimer=setInterval(()=>{if(mineState&&!mineState.over){mineState.time++;const t=$('mine-time');if(t)t.textContent='⏱ '+mineState.time+'초';}},1000);}
+function mineEnter(){stopMineTimer();mineState={cells:[],placed:false,over:false,win:false,time:0,flagMode:false,opened:0,flags:0};mineRender();}
+function mineNewGame(){mineEnter();}
+function mineToggleFlag(){if(!mineState)return;mineState.flagMode=!mineState.flagMode;mineRender();}
+function mineNb(i){
+  const r=Math.floor(i/MN),c=i%MN,out=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    if(!dr&&!dc)continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<MN&&nc>=0&&nc<MN)out.push(nr*MN+nc);
+  }
+  return out;
+}
+function minePlace(first){
+  const s=mineState;
+  const banned=new Set([first,...mineNb(first)]);
+  let placed=0,guard=0;
+  while(placed<MINES&&guard++<5000){
+    const p=Math.floor(Math.random()*MN*MN);
+    if(banned.has(p)||s.cells[p].mine)continue;
+    s.cells[p].mine=true;placed++;
+  }
+  for(let i=0;i<MN*MN;i++)s.cells[i].n=mineNb(i).filter(j=>s.cells[j].mine).length;
+  s.placed=true;
+  startMineTimer();
+}
+function mineRender(){
+  const s=mineState;if(!$('mine-grid')||!s)return;
+  $('mine-mines').textContent='💣 '+(MINES-s.flags);
+  $('mine-time').textContent='⏱ '+s.time+'초';
+  $('mine-msg').innerHTML=s.over?(s.win?'🎉 클리어! '+s.time+'초':'💥 지뢰였어요… 새 게임으로 다시!'):'';
+  const fb=$('mine-flag');if(fb){fb.classList.toggle('on',s.flagMode);fb.textContent=s.flagMode?'🚩 깃발 모드 켜짐':'🚩 깃발 모드';}
+  $('mine-start').style.display=s.cells.length?'none':'';
+  if(s.placed&&!s.over&&!mineTimer)startMineTimer();
+  const g=$('mine-grid');
+  if(!s.cells.length){g.innerHTML='';$('mine-best').textContent=mineBestTx();return;}
+  let out='';
+  for(let i=0;i<MN*MN;i++){
+    const c=s.cells[i];
+    let cls='mcell',txt='';
+    if(c.open){
+      if(c.mine){cls+=c.boom?' boom':' mine';txt=c.boom?'💥':'💣';}
+      else if(c.n>0){txt=c.n;cls+=' n'+c.n;}
+      else cls+=' open';
+    }else if(c.flag){txt='🚩';cls+=' fl';}
+    else cls+=' closed';
+    out+='<button class="'+cls+'" onclick="mineTap('+i+')" oncontextmenu="mineFlag('+i+');return false;">'+txt+'</button>';
+  }
+  g.innerHTML=out;
+  $('mine-best').textContent=mineBestTx();
+}
+function mineBestTx(){
+  const mb=(coupleDoc&&coupleDoc.mine)||{};
+  const my=mb[me&&me.uid],py=partnerUid?mb[partnerUid]:null;
+  let t='';
+  if(my&&my.best)t+='🏆 나의 최고 '+my.best+'초';
+  if(py&&py.best)t+=(t?' · ':'')+(py.name||'파트너')+' 최고 '+py.best+'초';
+  return t;
+}
+function mineTap(i){
+  const s=mineState;if(!s||s.over)return;
+  if(s.flagMode){mineFlag(i);return;}
+  if(!s.cells.length){for(let k=0;k<MN*MN;k++)s.cells.push({mine:false,open:false,flag:false,n:0,boom:false});}
+  const c=s.cells[i];
+  if(c.flag)return;
+  if(!s.placed)minePlace(i);
+  if(s.cells[i].mine){s.cells[i].boom=true;s.over=true;stopMineTimer();mineRender();return;}
+  mineOpen(i);
+  if(s.opened===MN*MN-MINES){s.over=true;s.win=true;stopMineTimer();mineSaveBest(s.time);}
+  mineRender();
+}
+function mineOpen(i){
+  const s=mineState,c=s.cells[i];
+  if(!c||c.open||c.flag||c.mine)return;
+  c.open=true;s.opened++;
+  if(c.n===0)mineNb(i).forEach(mineOpen);
+}
+function mineFlag(i){
+  const s=mineState;if(!s||s.over||!s.placed)return;
+  const c=s.cells[i];if(!c||c.open)return;
+  c.flag=!c.flag;s.flags+=c.flag?1:-1;
+  mineRender();
+}
+async function mineSaveBest(t){
+  const mb=(coupleDoc&&coupleDoc.mine)||{};
+  const cur=(mb[me.uid]&&mb[me.uid].best)||9999;
+  const nm=(me.displayName||userDoc.nickname||'나');
+  try{await db.collection('couples').doc(coupleDoc.id).update({['mine.'+me.uid]:{best:Math.min(cur,t),name:nm}});}catch(e){}
+  toast(t+'초 클리어! 🎉'+(t<cur?' 신기록!':''));
+}
 /* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
 let omokDoc=null;
 const OMOK_N=15;
 let curGame='tama';
 function pickGame(g){
   curGame=g;
-  ['tama','omok','lad'].forEach(k=>{
+  ['tama','omok','lad','mine'].forEach(k=>{
     const b=$('gm-tab-'+k);if(b)b.classList.toggle('on',k===g);
   });
-  ['tama','omok','lad'].forEach(k=>{
+  ['tama','omok','lad','mine'].forEach(k=>{
     const w=$(k+'-wrap');if(w)w.style.display=(g===k)?'block':'none';
   });
-  if(g==='tama')renderTama();else if(g==='omok')renderOmok();else renderLad();
+  if(g==='tama')renderTama();else if(g==='omok')renderOmok();else if(g==='lad')renderLad();else mineEnter();
   if($('game-players'))$('game-players').style.display='none';
 }
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();stopCatAnim();}else if(curGame==='lad'){renderLad();stopCatAnim();}else{renderTama();startCatAnim();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
+function renderGameTab(){stopMineTimer();if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();stopCatAnim();}else if(curGame==='lad'){renderLad();stopCatAnim();}else if(curGame==='mine'){mineRender();}else{renderTama();startCatAnim();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
 // 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
 function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
 function gpXpOf(s){return s.wins*5+s.losses*1;}
