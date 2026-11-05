@@ -1060,7 +1060,7 @@ function genCode(){let s='';for(let i=0;i<6;i++)s+=CODE_CHARS[Math.floor(Math.ra
 /* ═══════════════════════════ 상태 ═══════════════════════════ */
 let me=null,userDoc=null,coupleDoc=null,partnerUid=null,partnerDoc=null;
 let unsubs=[];
-function detachAll(){watchersOn=false;subsOn=false;unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
+function detachAll(){watchersOn=false;subsOn=false;if(chatUnsub){try{chatUnsub()}catch(e){}chatUnsub=null;}if(photoUnsub){try{photoUnsub()}catch(e){}photoUnsub=null;}unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
 function registerAuthWatch(){auth.onAuthStateChanged(async u=>{
   detachAll();
   if(!u){me=null;show('view-auth');return;}
@@ -1123,7 +1123,7 @@ async function joinByCode(){
 }
 
 /* ═══════════════════════════ 앱 진입 ═══════════════════════════ */
-let watchersOn=false;
+let watchersOn=false,chatLimit=60,chatHasMore=false,chatUnsub=null,photoLimit=60,photoHasMore=false,photoUnsub=null,_subChat=null,_subPhotos=null;
 let subsOn=false;
 function enterApp(coupleId){
   if($('view-app')&&$('view-app').classList.contains('on'))return; // 이미 앱 안이면 재진입 금지(탭 보존)
@@ -1132,6 +1132,27 @@ function enterApp(coupleId){
   show('view-app');goTab('cal');
   if(subsOn)return;
   subsOn=true;
+  function subscribeChat(cid){
+    if(chatUnsub){try{chatUnsub()}catch(e){}chatUnsub=null;}
+    const cht=db.collection('couples').doc(cid).collection('chat');
+    chatUnsub=cht.orderBy('ts','desc').limit(chatLimit).onSnapshot(s=>{
+      const seen={},dedup=[];
+      s.docs.forEach(d=>{if(!seen[d.id]){seen[d.id]=1;dedup.push(d);}});
+      chatHasMore=dedup.length>=chatLimit;
+      chats=dedup.reverse().map(d=>({id:d.id,...d.data()}));
+      renderChat();updateChatBadge();
+      if($('chat-view').classList.contains('on')){chatSeen=Date.now();localStorage.setItem('pc-chat-seen',chatSeen);updateChatBadge();}
+    },e=>console.error(e));
+  }
+  _subChat=subscribeChat;_subPhotos=subscribePhotos;
+  function subscribePhotos(cid){
+    if(photoUnsub){try{photoUnsub()}catch(e){}photoUnsub=null;}
+    const phs=db.collection('couples').doc(cid).collection('photos').orderBy('ts','desc').limit(photoLimit);
+    photoUnsub=phs.onSnapshot(s=>{
+      photoHasMore=s.docs.length>=photoLimit;
+      renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();
+    },e=>console.error(e));
+  }
   unsubs.push(db.collection('couples').doc(coupleId).onSnapshot(doc=>{
     if(!doc.exists){ // 해제됨
       detachAll();
@@ -1147,21 +1168,13 @@ function enterApp(coupleId){
   }));
   const recs=db.collection('couples').doc(coupleId).collection('records').orderBy('ts','desc').limit(100);
   unsubs.push(recs.onSnapshot(s=>{renderFeed(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();},e=>console.error(e)));
-  const phs=db.collection('couples').doc(coupleId).collection('photos').orderBy('ts','desc').limit(300);
-  unsubs.push(phs.onSnapshot(s=>{renderPhotos(s.docs.map(d=>({id:d.id,...d.data()})));updateStorage();updateBadges();},e=>console.error(e)));
+  subscribePhotos(coupleId);
   const evs=db.collection('couples').doc(coupleId).collection('events');
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();updateBadges();},e=>console.error(e)));
   const ids=db.collection('couples').doc(coupleId).collection('ideas');
   unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
   unsubs.push(db.collection('couples').doc(coupleId).collection('games').orderBy('ts','desc').limit(6).onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
-  const cht=db.collection('couples').doc(coupleId).collection('chat');
-  unsubs.push(cht.orderBy('ts').onSnapshot(s=>{
-    const seen={},dedup=[];
-    s.docs.forEach(d=>{if(!seen[d.id]){seen[d.id]=1;dedup.push(d);}});
-    chats=dedup.map(d=>({id:d.id,...d.data()}));
-    renderChat();updateChatBadge();
-    if($('chat-view').classList.contains('on')){chatSeen=Date.now();localStorage.setItem('pc-chat-seen',chatSeen);updateChatBadge();}
-  },e=>console.error(e)));
+  subscribeChat(coupleId);
   // 폼 초기값
   $('r-date').value=toDateStr(new Date());
 
@@ -2001,7 +2014,9 @@ function renderPhotoGrid(){
   buildLbList();
   $('ph-empty').classList.toggle('hidden',!!lbList.length);
   $('ph-count').textContent=lbList.length?lbList.length+'장':'';
-  $('ph-grid').innerHTML=lbList.map((p,i)=>'<img class="ph" src="'+p.img+'" loading="lazy" onclick="openLbAt('+i+')">').join('');
+  let out=lbList.map((p,i)=>'<img class="ph" src="'+p.img+'" loading="lazy" onclick="openLbAt('+i+')">').join('');
+  if(photoHasMore&&lbList.length)out+='<button class="btn-sub" style="grid-column:1/-1;margin:4px auto 8px;padding:9px 18px;font-size:12.5px" onclick="photoLoadOlder()">🖼 사진 더 보기</button>';
+  $('ph-grid').innerHTML=out;
 }
 function openLbAt(i){buildLbList();lbShow(i);}
 let lbState=null,lbList=[];
@@ -2243,6 +2258,7 @@ function renderChat(){
     return;
   }
   let lastDate='';let out='';
+  if(chatHasMore)out+='<div style="text-align:center;margin:2px 0 8px"><button class="btn-sub" style="padding:7px 14px;font-size:12px" onclick="chatLoadOlder()">⬆ 이전 대화 더 보기</button></div>';
   chats.forEach(m=>{
     const d=m.ts?toDateStr(new Date(m.ts)):'';
     if(d&&d!==lastDate){out+='<div class="chat-date">'+fmtDate(d)+'</div>';lastDate=d;}
@@ -2296,6 +2312,12 @@ function jumpToMsg(id){
   const el=document.getElementById('msg-'+id);
   if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('chat-flash');void el.offsetWidth;el.classList.add('chat-flash');}
 }
+function chatLoadOlder(){
+  chatLimit+=60;
+  toast('이전 대화를 불러오는 중…');
+  if(coupleDoc)_subChat(coupleDoc.id);
+}
+function photoLoadOlder(){photoLimit+=60;if(coupleDoc&&_subPhotos)_subPhotos(coupleDoc.id);}
 async function delMsg(id){
   const m=chats.find(x=>x.id===id);if(!m)return;
   if(m.uid!==me.uid){toast('내 메시지만 삭제할 수 있어요');return;}
