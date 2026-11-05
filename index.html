@@ -2068,12 +2068,11 @@ let photoFilter='all',photoBasis='date';
 try{photoFilter=localStorage.getItem('pc-ph-filter')||'all';photoBasis=localStorage.getItem('pc-ph-basis')||'date';}catch(e){}
 function setPhotoFilter(f){photoFilter=f;try{localStorage.setItem('pc-ph-filter',f);}catch(e){}renderPhotoGrid();}
 function togglePhotoBasis(){photoBasis=photoBasis==='date'?'up':'date';try{localStorage.setItem('pc-ph-basis',photoBasis);}catch(e){}renderPhotoGrid();}
-function phMonthKey(p){
-  let d=null;
-  if(photoBasis==='date'&&p.type==='rec'&&p.date){const t=new Date(p.date+'T00:00:00');if(!isNaN(t))d=t;}
-  if(!d)d=new Date(p.ts);
-  return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
+function phKey(p){
+  if(photoBasis==='date'&&p.type==='rec'&&p.date){const t=new Date(p.date+'T00:00:00');if(!isNaN(t))return t.getTime();}
+  return p.ts||0;
 }
+function phMonthLabel(t){const d=new Date(t);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';}
 function renderPhotoGrid(){
   if(!$('ph-grid'))return;
   buildLbList();
@@ -2084,8 +2083,9 @@ function renderPhotoGrid(){
   $('ph-count').textContent=shown.length?shown.length+'장':'';
   if(!lbList.length){$('ph-grid').innerHTML='';return;}
   if(!shown.length){$('ph-grid').innerHTML='<div class="pm-empty">이 필터에 해당하는 사진이 없어요 🙈</div>';return;}
+  const rows=shown.map(x=>({p:x.p,i:x.i,k:phKey(x.p)})).sort((a,b)=>b.k-a.k||((b.p.ts||0)-(a.p.ts||0)));
   const months=[],byM={};
-  shown.forEach(x=>{const k=phMonthKey(x.p);if(!byM[k]){byM[k]=[];months.push(k);}byM[k].push(x);});
+  rows.forEach(x=>{const k=phMonthLabel(x.k);if(!byM[k]){byM[k]=[];months.push(k);}byM[k].push(x);});
   let out='';
   months.forEach(k=>{
     out+='<div class="pm-head">📅 '+k+' <small>'+byM[k].length+'장</small></div>'
