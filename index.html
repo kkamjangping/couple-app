@@ -2247,23 +2247,33 @@ function renderStats(){
     :'<span class="tiny">아직 태그가 없어요</span>';
 }
 
+let badgeStoreOK=true;
+function badgeSeen(k,v){try{localStorage.setItem('pc-seen-'+k,v);}catch(e){badgeStoreOK=false;}}
 function updateBadges(){
+  if(!me||!me.uid)return;
   if(!$('pane-home'))return;
+  try{localStorage.setItem('pc-seen-canary',String(Date.now()));}catch(e){badgeStoreOK=false;}
+  if(!badgeStoreOK){['dot-home','dot-photo','dot-cal','dot-idea'].forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});return;}
+  const now0=Date.now();
   const mark=(id,on)=>{const el=$(id);if(el)el.classList.toggle('on',on);};
   const act=document.querySelector('.tabpane.on');
   const at=act?act.id.replace('pane-',''):null;
-  const adj=(k,v)=>{if(k===at&&v>lastSeen(k)){try{localStorage.setItem('pc-seen-'+k,v);}catch(e){}}return lastSeen(k);};
+  const adj=(k,v)=>{if(k===at&&v>lastSeen(k))badgeSeen(k,v);return lastSeen(k);};
   let h=0;
   feedItems.forEach(r=>{
     if(r.author!==me.uid&&(r.ts||0)>h)h=r.ts;
     (r.comments||[]).forEach(c=>{if(c.uid&&c.uid!==me.uid&&(c.ts||0)>h)h=c.ts;});
   });
+  h=Math.min(h,now0);
   mark('dot-home',h>adj('home',h));
   let p=0;photoItems.forEach(x=>{if(x.owner!==me.uid&&(x.ts||0)>p)p=x.ts;});
+  p=Math.min(p,now0);
   mark('dot-photo',p>adj('photo',p));
   let c2=0;events.forEach(x=>{if(x.createdBy!==me.uid&&(x.ts||0)>c2)c2=x.ts;});
+  c2=Math.min(c2,now0);
   mark('dot-cal',c2>adj('cal',c2));
   let d=0;ideas.forEach(x=>{if(x.createdBy!==me.uid&&(x.ts||0)>d)d=x.ts;});
+  d=Math.min(d,now0);
   mark('dot-idea',d>adj('idea',d));
 }
 function lastSeen(k){return +(localStorage.getItem('pc-seen-'+k)||0);}
