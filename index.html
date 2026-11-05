@@ -554,6 +554,17 @@ button{white-space:nowrap!important}
 .chip .sck.on{background:linear-gradient(135deg,#ff7ab8,#ff2e88);border-color:transparent;color:#fff}
 .chip.eaten{opacity:.5;text-decoration:line-through}
 .isec{font-size:12px;font-weight:800;color:var(--tx2);margin:12px 0 4px;display:flex;align-items:center;gap:6px}
+
+/* ── v114 사진첩 정리 ── */
+.ph-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 0;flex-wrap:wrap}
+.ph-chips{display:flex;gap:6px;flex-wrap:wrap}
+.ph-chips button{font-size:12px;font-weight:700;color:#d9a8b8;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .2s;font-family:inherit}
+.ph-chips button.on{color:#fff;background:linear-gradient(135deg,rgba(255,95,168,.35),rgba(200,31,14,.3));border-color:rgba(255,46,136,.55);box-shadow:0 2px 10px rgba(255,46,136,.25)}
+#ph-basis{font-size:11.5px;font-weight:700;color:#ff8ab8;background:rgba(255,46,136,.08);border:1px dashed rgba(255,46,136,.4);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:inherit}
+.pm-head{font-size:12.5px;font-weight:800;color:#ffd27e;margin:12px 0 2px;display:flex;align-items:center;gap:6px}
+.pm-head small{color:var(--tx2);font-weight:600;font-size:11px}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:2px 0 6px}
+.pm-empty{grid-column:1/-1;text-align:center;color:var(--tx2);font-size:12.5px;padding:18px 0}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
 
 /* ── v97 캘린더 리디자인 ── */
@@ -737,7 +748,15 @@ button{white-space:nowrap!important}
     <div id="pane-photo" class="tabpane">
       <h2 class="sec">🖼️ 우리의 앨범 <span class="tiny" id="ph-count"></span></h2>
       <div class="upbar" id="upbar"><div class="spinner"></div><span id="upbar-tx">업로드 중…</span></div>
-      <div class="grid" id="ph-grid"></div>
+      <div class="ph-tools">
+        <div class="ph-chips">
+          <button id="phf-all" onclick="setPhotoFilter('all')">전체</button>
+          <button id="phf-rec" onclick="setPhotoFilter('rec')">📝 게시글</button>
+          <button id="phf-ph" onclick="setPhotoFilter('ph')">📸 직접업로드</button>
+        </div>
+        <button id="ph-basis" onclick="togglePhotoBasis()"></button>
+      </div>
+      <div id="ph-grid"></div>
       <div class="empty" id="ph-empty"><span class="em">📸</span><p>아직 사진이 없어요.<br>아래 + 버튼으로 소중한 순간을 올려보세요</p></div>
       <button class="fab" id="fab-photo" onclick="document.getElementById('ph-file').click()">＋</button>
       <input type="file" id="ph-file" accept="image/*" multiple class="hidden">
@@ -2037,13 +2056,34 @@ function renderPhotos(items){
   photoItems=items;
   renderPhotoGrid();
 }
+let photoFilter='all',photoBasis='date';
+try{photoFilter=localStorage.getItem('pc-ph-filter')||'all';photoBasis=localStorage.getItem('pc-ph-basis')||'date';}catch(e){}
+function setPhotoFilter(f){photoFilter=f;try{localStorage.setItem('pc-ph-filter',f);}catch(e){}renderPhotoGrid();}
+function togglePhotoBasis(){photoBasis=photoBasis==='date'?'up':'date';try{localStorage.setItem('pc-ph-basis',photoBasis);}catch(e){}renderPhotoGrid();}
+function phMonthKey(p){
+  let d=null;
+  if(photoBasis==='date'&&p.type==='rec'&&p.date){const t=new Date(p.date+'T00:00:00');if(!isNaN(t))d=t;}
+  if(!d)d=new Date(p.ts);
+  return d.getFullYear()+'년 '+(d.getMonth()+1)+'월';
+}
 function renderPhotoGrid(){
   if(!$('ph-grid'))return;
   buildLbList();
+  ['all','rec','ph'].forEach(f=>{const b=$('phf-'+f);if(b)b.classList.toggle('on',photoFilter===f);});
+  const bb=$('ph-basis');if(bb)bb.textContent=photoBasis==='date'?'🗓 데이트 날짜순':'⏱ 업로드 날짜순';
+  const shown=lbList.map((p,i)=>({p,i})).filter(x=>photoFilter==='all'||x.p.type===photoFilter);
   $('ph-empty').classList.toggle('hidden',!!lbList.length);
-  $('ph-count').textContent=lbList.length?lbList.length+'장':'';
-  let out=lbList.map((p,i)=>'<img class="ph" src="'+p.img+'" loading="lazy" onclick="openLbAt('+i+')">').join('');
-  if(photoHasMore&&lbList.length)out+='<button class="btn-sub" style="grid-column:1/-1;margin:4px auto 8px;padding:9px 18px;font-size:12.5px" onclick="photoLoadOlder()">🖼 사진 더 보기</button>';
+  $('ph-count').textContent=shown.length?shown.length+'장':'';
+  if(!lbList.length){$('ph-grid').innerHTML='';return;}
+  if(!shown.length){$('ph-grid').innerHTML='<div class="pm-empty">이 필터에 해당하는 사진이 없어요 🙈</div>';return;}
+  const months=[],byM={};
+  shown.forEach(x=>{const k=phMonthKey(x.p);if(!byM[k]){byM[k]=[];months.push(k);}byM[k].push(x);});
+  let out='';
+  months.forEach(k=>{
+    out+='<div class="pm-head">📅 '+k+' <small>'+byM[k].length+'장</small></div>'
+      +'<div class="pm-grid">'+byM[k].map(x=>'<img class="ph" src="'+x.p.img+'" loading="lazy" onclick="openLbAt('+x.i+')">').join('')+'</div>';
+  });
+  if(photoHasMore)out+='<button class="btn-sub" style="display:block;margin:6px auto 10px;padding:9px 18px;font-size:12.5px" onclick="photoLoadOlder()">🖼 사진 더 보기</button>';
   $('ph-grid').innerHTML=out;
 }
 function openLbAt(i){buildLbList();lbShow(i);}
@@ -2053,7 +2093,7 @@ function buildLbList(){
   const seen=new Set();
   const items=[];
   photoItems.map(p=>({type:'ph',id:p.id,img:p.b64,cap:(p.ownerName||'')+' · '+fmtTime(p.ts),mine:p.owner===me.uid,ts:p.ts}))
-    .concat(feedItems.flatMap(r=>photosOf(r).map((img,pi)=>({type:'rec',id:r.id,pidx:pi,img,cap:(r.authorName||'')+' · '+fmtTime(r.ts)+(photosOf(r).length>1?' · '+(pi+1)+'/'+photosOf(r).length:''),mine:r.author===me.uid,ts:r.ts}))))
+    .concat(feedItems.flatMap(r=>photosOf(r).map((img,pi)=>({type:'rec',id:r.id,pidx:pi,img,cap:(r.authorName||'')+' · '+fmtTime(r.ts)+(photosOf(r).length>1?' · '+(pi+1)+'/'+photosOf(r).length:''),mine:r.author===me.uid,ts:r.ts,date:(r.date||'')}))))
     .forEach(it=>{
       const key=it.img.slice(-80); // 내용 뒷부분으로 중복 판별
       if(!seen.has(key)){seen.add(key);items.push(it);}
