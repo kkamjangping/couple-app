@@ -561,10 +561,12 @@ button{white-space:nowrap!important}
 .ph-chips button{font-size:12px;font-weight:700;color:#d9a8b8;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .2s;font-family:inherit}
 .ph-chips button.on{color:#fff;background:linear-gradient(135deg,rgba(255,95,168,.35),rgba(200,31,14,.3));border-color:rgba(255,46,136,.55);box-shadow:0 2px 10px rgba(255,46,136,.25)}
 #ph-basis{font-size:11.5px;font-weight:700;color:#ff8ab8;background:rgba(255,46,136,.08);border:1px dashed rgba(255,46,136,.4);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:inherit}
+#feed-sort{font-size:11.5px;font-weight:700;color:#ff8ab8;background:rgba(255,46,136,.08);border:1px dashed rgba(255,46,136,.4);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:inherit}
 .pm-head{font-size:12.5px;font-weight:800;color:#ffd27e;margin:12px 0 2px;display:flex;align-items:center;gap:6px}
 .pm-head small{color:var(--tx2);font-weight:600;font-size:11px}
 .pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:2px 0 6px}
 .pm-empty{grid-column:1/-1;text-align:center;color:var(--tx2);font-size:12.5px;padding:18px 0}
+.pm-grid .ph{aspect-ratio:1;border-radius:10px;object-fit:cover;width:100%;cursor:zoom-in;background:#f8e8eb}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
 
 /* ── v97 캘린더 리디자인 ── */
@@ -740,6 +742,7 @@ button{white-space:nowrap!important}
         <div id="pick-thumbs"></div>
         <button class="btn btn-pri save-btn" id="rec-save" onclick="saveRecord()">기록 저장하기</button>
       </div>
+      <div class="ph-tools" style="margin:2px 0 8px"><button id="feed-sort" onclick="toggleFeedSort()"></button></div>
       <div class="feed" id="feed"></div>
       <button class="fab" id="fab-home" onclick="toggleCompose()">＋</button>
     </div>
@@ -1929,11 +1932,16 @@ async function saveRecord(){
   btn.disabled=false;btn.textContent='기록 저장하기';
 }
 let feedItems=[];
+let feedSort='ts';try{feedSort=localStorage.getItem('pc-feed-sort')||'ts';}catch(e){}
+function toggleFeedSort(){feedSort=feedSort==='ts'?'date':'ts';try{localStorage.setItem('pc-feed-sort',feedSort);}catch(e){}renderFeed(feedItems);}
+function feedSorted(){const a=[...feedItems];if(feedSort==='ts')a.sort((x,y)=>(y.ts||0)-(x.ts||0));else a.sort((x,y)=>((y.date||'')<(x.date||'')?-1:(y.date||'')>(x.date||'')?1:(y.ts||0)-(x.ts||0)));return a;}
 function renderFeed(items){
   feedItems=items;
   renderPhotoGrid();
+  const sb=$('feed-sort');if(sb)sb.textContent=feedSort==='ts'?'⏱ 올린순으로 보는 중':'🗓 데이트 날짜순으로 보는 중';
   const box=$('feed');
   if(!items.length){box.innerHTML='<div class="empty" style="background:#150c0f;border-radius:20px"><span class="em">🌱</span><p>첫 기록을 남겨보세요!<br>상대방 화면에도 바로 나타나요</p></div>';return;}
+  items=feedSorted();
   let lastDate='';
   box.innerHTML=items.map(r=>{
     const mine=r.author===me.uid;
