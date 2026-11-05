@@ -1669,7 +1669,7 @@ const MN=9,MINES=10;
 let mineState=null,mineTimer=null;
 function stopMineTimer(){if(mineTimer){try{clearInterval(mineTimer)}catch(e){}mineTimer=null;}}
 function startMineTimer(){stopMineTimer();mineTimer=setInterval(()=>{if(mineState&&!mineState.over){mineState.time++;const t=$('mine-time');if(t)t.textContent='⏱ '+mineState.time+'초';}},1000);}
-function mineEnter(){stopMineTimer();mineState={cells:[],placed:false,over:false,win:false,time:0,flagMode:false,opened:0,flags:0};mineRender();}
+function mineEnter(){stopMineTimer();mineState={cells:[],placed:false,over:false,win:false,time:0,flagMode:false,opened:0,flags:0};for(let k=0;k<MN*MN;k++)mineState.cells.push({mine:false,open:false,flag:false,n:0,boom:false});mineRender();}
 function mineNewGame(){mineEnter();}
 function mineToggleFlag(){if(!mineState)return;mineState.flagMode=!mineState.flagMode;mineRender();}
 function mineNb(i){
@@ -1700,7 +1700,7 @@ function mineRender(){
   $('mine-time').textContent='⏱ '+s.time+'초';
   $('mine-msg').innerHTML=s.over?(s.win?'🎉 클리어! '+s.time+'초':'💥 지뢰였어요… 새 게임으로 다시!'):'';
   const fb=$('mine-flag');if(fb){fb.classList.toggle('on',s.flagMode);fb.textContent=s.flagMode?'🚩 깃발 모드 켜짐':'🚩 깃발 모드';}
-  $('mine-start').style.display=s.cells.length?'none':'';
+  $('mine-start').style.display=s.placed?'none':'';
   if(s.placed&&!s.over&&!mineTimer)startMineTimer();
   const g=$('mine-grid');
   if(!s.cells.length){g.innerHTML='';$('mine-best').textContent=mineBestTx();return;}
@@ -1730,7 +1730,6 @@ function mineBestTx(){
 function mineTap(i){
   const s=mineState;if(!s||s.over)return;
   if(s.flagMode){mineFlag(i);return;}
-  if(!s.cells.length){for(let k=0;k<MN*MN;k++)s.cells.push({mine:false,open:false,flag:false,n:0,boom:false});}
   const c=s.cells[i];
   if(c.flag)return;
   if(!s.placed)minePlace(i);
