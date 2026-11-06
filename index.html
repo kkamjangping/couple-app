@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#f2c9cf">
+<meta name="theme-color" content="#0e0d10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>pink combat · 커플 앱</title>
@@ -229,7 +229,12 @@ h2.sec .em{font-size:18px}
 .cel.dim{color:#d5cbd0}
 .cel.today{color:var(--pri-d);font-weight:900}
 .cel.recday{color:var(--pri);font-weight:700}
-.cel.sel{background:#141216;box-shadow:inset 0 0 0 2px var(--pri),0 2px 8px rgba(92,143,58,.25);color:var(--pri-d);font-weight:900}
+.cel.sel{background:var(--pri);box-shadow:0 2px 10px rgba(242,201,207,.3);color:#1a1418;font-weight:900}
+.cal-grid .cel.sel:not(.today){background:var(--pri)!important;color:#1a1418!important}
+.cal-grid .cel.sel:not(.today) .n-date,.cal-grid .cel.sel:not(.today) .num{color:#1a1418!important}
+.cal-grid .cel.sel:not(.today) .ev-lb{background:rgba(26,20,24,.16)!important;color:#1a1418!important}
+.cal-grid .cel.sel:not(.today) .dot{background:#1a1418!important}
+.cal-grid .cel.sel:not(.today) .ann-dot{background:#8a6d4f!important}
 .cel .dot{width:6px;height:6px;border-radius:50%;background:var(--pri);margin-top:3px;color:#fff}
 .cel .ann-dot{
   width:6px;height:6px;border-radius:50%;background:#ffb43f;margin-top:3px;
@@ -601,6 +606,7 @@ button{white-space:nowrap!important}
 .btn-pri{background:linear-gradient(135deg,#e9bcc5,#cf9aa6)!important;color:#231a1f!important;box-shadow:0 6px 18px rgba(10,9,12,.4)!important}
 .fab,#fab-home{background:linear-gradient(135deg,#e9bcc5,#cf9aa6)!important;color:#231a1f!important;box-shadow:0 10px 24px rgba(10,9,12,.55)!important}
 .ick.on{color:#231a1f!important}
+.chipshine{color:#1a1418!important}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
