@@ -234,6 +234,7 @@ h2.sec .em{font-size:18px}
 .cal-grid .cel.sel:not(.today) .n-date,.cal-grid .cel.sel:not(.today) .num{color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .ev-lb{background:rgba(26,20,24,.16)!important;color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .dot{background:#1a1418!important}
+.cal-grid .cel.sel:not(.today).recday .n-date{background:rgba(26,20,24,.85)!important;color:#f2c9cf!important}
 .cal-grid .cel.sel:not(.today) .ann-dot{background:#8a6d4f!important}
 .cel .dot{width:6px;height:6px;border-radius:50%;background:var(--pri);margin-top:3px;color:#fff}
 .cel .ann-dot{
@@ -592,7 +593,7 @@ button{white-space:nowrap!important}
 .cal-grid .cel.sel{border-color:rgba(242,201,207,.7);background:rgba(242,201,207,.09);box-shadow:0 0 0 1px rgba(242,201,207,.3),0 4px 14px rgba(242,201,207,.15)}
 .cal-grid .cel .num{width:100%;align-items:stretch;padding:0 2px}
 .cal-grid .cel .num .n-date{align-self:center;font-weight:700}
-.cal-grid .cel.recday .n-date{background:#f2c9cf;color:#1a1418;font-weight:900;text-shadow:none;clip-path:path("M10 17 C 3 11, 0 6.5, 2.2 3.2 C 4 0.6, 8 0.4, 10 3 C 12 0.4, 16 0.6, 17.8 3.2 C 20 6.5, 17 11, 10 17 Z");width:20px;border-radius:0;padding:0;margin:0 auto;line-height:17px;font-size:10.5px;text-align:center}
+.cal-grid .cel.recday .n-date{background:#f2c9cf;color:#1a1418;font-weight:900;text-shadow:none;line-height:15px!important;font-size:11px!important;clip-path:path("M10 17 C 3 11, 0 6.5, 2.2 3.2 C 4 0.6, 8 0.4, 10 3 C 12 0.4, 16 0.6, 17.8 3.2 C 20 6.5, 17 11, 10 17 Z");width:20px;border-radius:0;padding:0;margin:0 auto;line-height:17px;font-size:10.5px;text-align:center}
 .cal-grid .cel .dots-row{display:flex;justify-content:center;gap:3px;margin:2px 0;min-height:5px}
 .cal-grid .cel .dot{width:5px;height:5px;border-radius:999px;background:#e5b3bd;flex:none}
 .cal-grid .cel .dot.ann{background:#e3c6a4;width:6px;height:6px}
