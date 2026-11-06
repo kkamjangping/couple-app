@@ -566,18 +566,7 @@ button{white-space:nowrap!important}
 .pm-head small{color:var(--tx2);font-weight:600;font-size:11px}
 .pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:2px 0 6px}
 .pm-empty{grid-column:1/-1;text-align:center;color:var(--tx2);font-size:12.5px;padding:18px 0}
-.pm-grid .ph{aspect-ratio:1;border-radius:10px;object-fit:cover;width:100%;cursor:zoom-in;background:#f8e8eb}
-
-/* ── v120 지뢰찾기 ── */
-.mine-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:10px;max-width:420px}
-.mcell{aspect-ratio:1;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.10);font-size:13px;font-weight:800;line-height:1;padding:0;cursor:pointer;-webkit-touch-callout:none;user-select:none;color:#fff;font-family:inherit;display:flex;align-items:center;justify-content:center}
-.mcell:active{background:rgba(255,255,255,.2)}
-.mcell.open{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.06)}
-.mcell.fl{background:rgba(255,46,136,.18)}
-.mcell.boom{background:rgba(255,46,136,.55)}
-.mcell.mine{background:rgba(255,46,136,.25)}
-.mcell.n1{color:#7ec8ff}.mcell.n2{color:#8be28b}.mcell.n3{color:#ff8a8a}.mcell.n4{color:#c39bff}.mcell.n5{color:#ffd27e}.mcell.n6{color:#7ee0d8}.mcell.n7{color:#fff}.mcell.n8{color:#d9a8b8}
-#mine-flag.on{color:#fff!important;background:linear-gradient(135deg,rgba(255,95,168,.35),rgba(200,31,14,.3))!important;border-color:rgba(255,46,136,.55)!important}
+.pm-grid .ph{aspect-ratio:1;border-radius:10px;object-fit:cover;width:100%;cursor:zoom-in;background:#f8e8eb}#mine-flag.on{color:#fff!important;background:linear-gradient(135deg,rgba(255,95,168,.35),rgba(200,31,14,.3))!important;border-color:rgba(255,46,136,.55)!important}
 #idea-title:focus,#idea-memo:focus{outline:none;border-color:rgba(255,46,136,.55)!important;box-shadow:0 0 0 3px rgba(255,46,136,.12)}
 
 /* ── v97 캘린더 리디자인 ── */
@@ -820,8 +809,7 @@ button{white-space:nowrap!important}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-lad" onclick="pickGame('lad')">🪜 사다리타기</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-mine" onclick="pickGame('mine')">💣 지뢰찾기</button>
+          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
         </div>
       </div>
       <div class="card" id="game-players">
@@ -878,33 +866,7 @@ button{white-space:nowrap!important}
       </div>
     </div>
     </div>
-          <div id="lad-wrap" style="display:none"><div class="card" id="lad-box">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <h2 class="sec" style="margin:0">🪜 사다리타기</h2>
-          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="ladReset()">🔄 새로 만들기</button>
-        </div>
-        <p class="tiny" style="margin:0 0 8px">세로줄마다 항목을 한 줄씩 입력하고 (줄바꿈으로 구분) 사다리를 타보세요. 참가자는 자동으로 혜연·유준이 배정돼요.</p>
-        <label class="lb">항목 입력 (줄바꿈 구분)</label>
-        <textarea id="lad-in" rows="4" placeholder="예) 치킨 먹기&#10;집안일 전부&#10;용돈 뽑기&#10;영화 선택" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:var(--tx);font-family:inherit;font-size:13.5px;padding:9px 10px;resize:vertical;line-height:1.5"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-pri" style="flex:1;padding:11px 8px" onclick="ladBuild()">🪜 사다리 만들기</button>
-          <button class="btn-sub" style="padding:11px 14px" id="lad-go" onclick="ladGo()" disabled>▷ 결과 보기</button>
-        </div>
-        <div id="lad-stage" style="margin-top:10px"></div>
-      </div></div>
-      <div id="mine-wrap" style="display:none"><div class="card" id="mine-box">
-        <h2 class="sec" style="margin-top:0">💣 지뢰찾기</h2>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span class="chip" id="mine-mines">💣 10</span>
-          <span class="chip" id="mine-time">⏱ 0초</span>
-          <button class="btn-sub" id="mine-flag" style="padding:7px 12px;font-size:12px" onclick="mineToggleFlag()">🚩 깃발 모드</button>
-          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="mineNewGame()">🔄 새 게임</button>
-        </div>
-        <div id="mine-msg" style="font-size:13.5px;font-weight:800;color:#ff8ab8;margin-top:8px;min-height:19px"></div>
-        <div id="mine-start" class="tiny" style="margin-top:10px">아무 칸이나 눌러서 시작! 첫 칸은 절대 지뢰가 아니에요 🍀<br>길게 누르거나 🚩 깃발 모드로 지뢰 표시 (9×9 · 지뢰 10개)</div>
-        <div class="mine-grid" id="mine-grid"></div>
-        <div id="mine-best" style="font-size:12px;color:#d9a8b8;font-weight:700;margin-top:10px"></div>
-      </div></div>
+          
       
       <div id="pane-set" class="tabpane">
       <div class="set-grp">
@@ -1564,215 +1526,22 @@ function drawStageCat(){
 let catAnim=null;
 function startCatAnim(){const cv=$('tama-cat');if(!cv||catAnim)return;const loop=()=>{drawStageCat();catAnim=requestAnimationFrame(loop);};loop();}
 function stopCatAnim(){if(catAnim){cancelAnimationFrame(catAnim);catAnim=null;}}
-/* ═══════════════════════════ 게임랜드(사다리타기) ═══════════════════════════ */
-let ladData=null,ladDone=false;
-function renderLad(){
-  if(!$('lad-box'))return;
-  if(ladData)ladDraw();
-}
-function ladReset(){
-  ladData=null;ladDone=false;
-  if($('lad-stage'))$('lad-stage').innerHTML='';
-  const g=$('lad-go');if(g)g.disabled=true;
-  toast('항목을 입력하고 사다리를 만들어 주세요');
-}
-function ladBuild(){
-  const raw=($('lad-in').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  if(raw.length<2){toast('항목을 2개 이상 입력해 주세요');return;}
-  if(raw.length>8){toast('항목은 최대 8개까지 가능해요');return;}
-  const n=raw.length;
-  const rows=8+Math.floor(Math.random()*5); // 가로줄 수 (일반적인 촘촘한 사다리)
-  const rungs=[];
-  for(let r=0;r<rows;r++){
-    const row=[];
-    for(let c=0;c<n-1;c++){
-      if(Math.random()<.55)row.push(c);
-    }
-    rungs.push(row);
-  }
-  // 바로 위 행과 완전히 같은 배치 방지(한 칸 사다리가 티 안 나게)
-  if(rungs.length>1&&JSON.stringify(rungs[rungs.length-1])===JSON.stringify(rungs[rungs.length-2])){
-    const last=rungs[rungs.length-1];
-    if(last.length)rungs[rungs.length-1]=[Math.min(last[0]+1,n-2)];
-  }
-  ladData={items:raw,rungs};ladDone=false;
-  const g=$('lad-go');if(g)g.disabled=false;
-  ladDraw();
-}
-function ladPaths(){
-  const n=ladData.items.length,W=300,pad=26;
-  const colX=i=>pad+i*((W-pad*2)/(n-1));
-  const rowH=26,top=30,H=top+ (ladData.rungs.length+1)*rowH;
-  const paths=[];
-  for(let s=0;s<n;s++){
-    let x=colX(s),c=s;
-    const pts=[[x,top]];
-    for(let r=0;r<ladData.rungs.length;r++){
-      const y=top+(r+1)*rowH;
-      const row=ladData.rungs[r];
-      pts.push([x,y]);
-      if(row.includes(c)){x=colX(c+1);c=c+1;pts.push([x,y]);}
-      else if(row.includes(c-1)){x=colX(c-1);c=c-1;pts.push([x,y]);}
-    }
-    pts.push([x,H]);
-    paths.push(pts);
-  }
-  return{paths,colX,top,H,rowH};
-}
-function ladDraw(){
-  const st=$('lad-stage');if(!st||!ladData)return;
-  const n=ladData.items.length;
-  const{paths,colX,top,H}=ladPaths();
-  const W=300,pad=26;
-  let svg='<svg viewBox="0 0 300 '+(H+10)+'" style="width:100%;height:auto;display:block">';
-  // 일반적인 사다리 프레임: 양끝 기둥 + 전체 폭 가로막대
-  svg+='<rect x="11" y="'+(top-6)+'" width="5" height="'+(H-top+12)+'" rx="2.5" fill="rgba(255,255,255,.30)"/>';
-  svg+='<rect x="'+(W-16)+'" y="'+(top-6)+'" width="5" height="'+(H-top+12)+'" rx="2.5" fill="rgba(255,255,255,.30)"/>';
-  const barH=Math.max(18,Math.round((H-top)/Math.max(1,ladData.rungs.length)));
-  for(let y=top;y<=H+0.1;y+=barH){
-    svg+='<rect x="11" y="'+(y-2)+'" width="'+(W-22)+'" height="4" rx="2" fill="rgba(255,255,255,.18)"/>';
-  }
-  // 실제 경로용 가로줄(은은하게)
-  ladData.rungs.forEach((row,r)=>{
-    const y=top+(r+1)*26;
-    row.forEach(c=>{
-      const x1=colX(c),x2=colX(c+1);
-      svg+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="rgba(255,95,168,.55)" stroke-width="3" stroke-linecap="round"/>';
-    });
-  });
-  const cols=['#ff5fa8','#7db8ff'];
-  paths.forEach((pts,s)=>{
-    let d='M '+pts.map(p=>p[0]+' '+p[1]).join(' L ');
-    svg+='<path id="ladp'+s+'" d="'+d+'" fill="none" stroke="'+cols[s%2]+'" stroke-width="2.5" stroke-dasharray="700" stroke-dashoffset="700" style="transition:stroke-dashoffset 1.6s ease"/>';
-  });
-  svg+='<text x="'+colX(0)+'" y="'+(top-11)+'" text-anchor="middle" font-size="11">👧</text>';
-  svg+='<text x="'+colX(1)+'" y="'+(top-11)+'" text-anchor="middle" font-size="11">👦</text>';
-  for(let s=2;s<n;s++){
-    svg+='<circle cx="'+colX(s)+'" cy="'+top+'" r="4" fill="rgba(255,255,255,.4)"/>';
-  }
-  for(let s=0;s<n;s++){
-    svg+='<text x="'+colX(s)+'" y="'+(H+9)+'" text-anchor="middle" font-size="8.5" fill="'+(ladDone&&s===0?'#ffd27e':ladDone?'#ffa4cd':'rgba(255,255,255,.6)')+'" font-weight="700">'+esc(ladDone?ladData.items[s]:String(s+1))+'</text>';
-  }
-  svg+='</svg>';
-  const names=['혜연','유준'];
-  let who='<div style="display:flex;gap:8px;margin-top:4px">'+names.map((nm,s)=>'<div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 9px;font-size:11.5px"><b style="color:'+(s===0?'#ff5fa8':'#7db8ff')+'">'+nm+'</b>'+(ladDone?'<span style="color:var(--tx2)"> · '+esc(ladData.items[s%ladData.items.length])+'</span>':'')+'</div>').join('')+'</div>';
-  st.innerHTML=svg+who;
-  if(ladDone)requestAnimationFrame(()=>{paths.forEach((p,s)=>{const el=document.getElementById('ladp'+s);if(el)el.style.strokeDashoffset='0';});});
-}
-function ladGo(){
-  if(!ladData||ladDone)return;
-  ladDone=true;ladDraw();
-  toast('🪜 결과가 나왔어요!');
-}
-/* ═══════════════════════════ 게임랜드(지뢰찾기) ═══════════════════════════ */
-const MN=9,MINES=10;
-let mineState=null,mineTimer=null;
-function stopMineTimer(){if(mineTimer){try{clearInterval(mineTimer)}catch(e){}mineTimer=null;}}
-function startMineTimer(){stopMineTimer();mineTimer=setInterval(()=>{if(mineState&&!mineState.over){mineState.time++;const t=$('mine-time');if(t)t.textContent='⏱ '+mineState.time+'초';}},1000);}
-function mineEnter(){stopMineTimer();mineState={cells:[],placed:false,over:false,win:false,time:0,flagMode:false,opened:0,flags:0};for(let k=0;k<MN*MN;k++)mineState.cells.push({mine:false,open:false,flag:false,n:0,boom:false});mineRender();}
-function mineNewGame(){mineEnter();}
-function mineToggleFlag(){if(!mineState)return;mineState.flagMode=!mineState.flagMode;mineRender();}
-function mineNb(i){
-  const r=Math.floor(i/MN),c=i%MN,out=[];
-  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-    if(!dr&&!dc)continue;
-    const nr=r+dr,nc=c+dc;
-    if(nr>=0&&nr<MN&&nc>=0&&nc<MN)out.push(nr*MN+nc);
-  }
-  return out;
-}
-function minePlace(first){
-  const s=mineState;
-  const banned=new Set([first,...mineNb(first)]);
-  let placed=0,guard=0;
-  while(placed<MINES&&guard++<5000){
-    const p=Math.floor(Math.random()*MN*MN);
-    if(banned.has(p)||s.cells[p].mine)continue;
-    s.cells[p].mine=true;placed++;
-  }
-  for(let i=0;i<MN*MN;i++)s.cells[i].n=mineNb(i).filter(j=>s.cells[j].mine).length;
-  s.placed=true;
-  startMineTimer();
-}
-function mineRender(){
-  const s=mineState;if(!$('mine-grid')||!s)return;
-  $('mine-mines').textContent='💣 '+(MINES-s.flags);
-  $('mine-time').textContent='⏱ '+s.time+'초';
-  $('mine-msg').innerHTML=s.over?(s.win?'🎉 클리어! '+s.time+'초':'💥 지뢰였어요… 새 게임으로 다시!'):'';
-  const fb=$('mine-flag');if(fb){fb.classList.toggle('on',s.flagMode);fb.textContent=s.flagMode?'🚩 깃발 모드 켜짐':'🚩 깃발 모드';}
-  $('mine-start').style.display=s.placed?'none':'';
-  if(s.placed&&!s.over&&!mineTimer)startMineTimer();
-  const g=$('mine-grid');
-  if(!s.cells.length){g.innerHTML='';$('mine-best').textContent=mineBestTx();return;}
-  let out='';
-  for(let i=0;i<MN*MN;i++){
-    const c=s.cells[i];
-    let cls='mcell',txt='';
-    if(c.open){
-      if(c.mine){cls+=c.boom?' boom':' mine';txt=c.boom?'💥':'💣';}
-      else if(c.n>0){txt=c.n;cls+=' n'+c.n;}
-      else cls+=' open';
-    }else if(c.flag){txt='🚩';cls+=' fl';}
-    else cls+=' closed';
-    out+='<button class="'+cls+'" onclick="mineTap('+i+')" oncontextmenu="mineFlag('+i+');return false;">'+txt+'</button>';
-  }
-  g.innerHTML=out;
-  $('mine-best').textContent=mineBestTx();
-}
-function mineBestTx(){
-  const mb=(coupleDoc&&coupleDoc.mine)||{};
-  const my=mb[me&&me.uid],py=partnerUid?mb[partnerUid]:null;
-  let t='';
-  if(my&&my.best)t+='🏆 나의 최고 '+my.best+'초';
-  if(py&&py.best)t+=(t?' · ':'')+(py.name||'파트너')+' 최고 '+py.best+'초';
-  return t;
-}
-function mineTap(i){
-  const s=mineState;if(!s||s.over)return;
-  if(s.flagMode){mineFlag(i);return;}
-  const c=s.cells[i];
-  if(c.flag)return;
-  if(!s.placed)minePlace(i);
-  if(s.cells[i].mine){s.cells[i].boom=true;s.over=true;stopMineTimer();mineRender();return;}
-  mineOpen(i);
-  if(s.opened===MN*MN-MINES){s.over=true;s.win=true;stopMineTimer();mineSaveBest(s.time);}
-  mineRender();
-}
-function mineOpen(i){
-  const s=mineState,c=s.cells[i];
-  if(!c||c.open||c.flag||c.mine)return;
-  c.open=true;s.opened++;
-  if(c.n===0)mineNb(i).forEach(mineOpen);
-}
-function mineFlag(i){
-  const s=mineState;if(!s||s.over||!s.placed)return;
-  const c=s.cells[i];if(!c||c.open)return;
-  c.flag=!c.flag;s.flags+=c.flag?1:-1;
-  mineRender();
-}
-async function mineSaveBest(t){
-  const mb=(coupleDoc&&coupleDoc.mine)||{};
-  const cur=(mb[me.uid]&&mb[me.uid].best)||9999;
-  const nm=(me.displayName||userDoc.nickname||'나');
-  try{await db.collection('couples').doc(coupleDoc.id).update({['mine.'+me.uid]:{best:Math.min(cur,t),name:nm}});}catch(e){}
-  toast(t+'초 클리어! 🎉'+(t<cur?' 신기록!':''));
-}
 /* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
 let omokDoc=null;
 const OMOK_N=15;
 let curGame='tama';
 function pickGame(g){
   curGame=g;
-  ['tama','omok','lad','mine'].forEach(k=>{
+  ['tama','omok'].forEach(k=>{
     const b=$('gm-tab-'+k);if(b)b.classList.toggle('on',k===g);
   });
-  ['tama','omok','lad','mine'].forEach(k=>{
+  ['tama','omok'].forEach(k=>{
     const w=$(k+'-wrap');if(w)w.style.display=(g===k)?'block':'none';
   });
-  if(g==='tama')renderTama();else if(g==='omok')renderOmok();else if(g==='lad')renderLad();else mineEnter();
+  if(g==='tama')renderTama();else renderOmok();
   if($('game-players'))$('game-players').style.display='none';
 }
-function renderGameTab(){stopMineTimer();if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();stopCatAnim();}else if(curGame==='lad'){renderLad();stopCatAnim();}else if(curGame==='mine'){mineRender();}else{renderTama();startCatAnim();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
+function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();stopCatAnim();}else{renderTama();startCatAnim();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
 // 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
 function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
 function gpXpOf(s){return s.wins*5+s.losses*1;}
