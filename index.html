@@ -602,6 +602,8 @@ button{white-space:nowrap!important}
 .cal-legend{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11px;color:#a79fa6}
 .cal-legend .lg-dot{display:inline-block;width:7px;height:7px;border-radius:999px;margin-right:4px;vertical-align:middle}
 .lg-ann{background:#e3c6a4}.lg-ev{background:#f2c9cf}.lg-hl{width:11px;height:10px;background:#f2c9cf;clip-path:path("M5.5 9.5 C 1.5 6.3, 0 3.9, 1.2 2 C 2.2 0.4, 4.4 0.3, 5.5 1.7 C 6.6 0.3, 8.8 0.4, 9.8 2 C 11 3.9, 9.5 6.3, 5.5 9.5 Z");display:inline-block;margin-right:4px;vertical-align:middle;border-radius:0}
+/* ── v127 칩 색 보정 ── */
+#feed-sort,#ph-basis{background:rgba(242,201,207,.08)!important;color:#e0b4bd!important;border:1px dashed rgba(242,201,207,.4)!important;-webkit-appearance:none!important;appearance:none!important}
 /* ── v125 페이드 로즈 테마 ── */
 .btn-pri{background:linear-gradient(135deg,#e9bcc5,#cf9aa6)!important;color:#231a1f!important;box-shadow:0 6px 18px rgba(10,9,12,.4)!important}
 .fab,#fab-home{background:linear-gradient(135deg,#e9bcc5,#cf9aa6)!important;color:#231a1f!important;box-shadow:0 10px 24px rgba(10,9,12,.55)!important}
@@ -2347,7 +2349,7 @@ function renderIdeas(){
   box.innerHTML=prog
     +(total===0?'<p class="tiny" style="margin:4px 0 8px">아직 아이디어가 없어요. 아래에서 추가해보세요 💡</p>':'')
     +(open.length?'<div class="isec">💖 하고 싶은 데이트 · '+open.length+'개</div>'+open.map(row).join(''):'')
-    +(done.length?'<div class="isec">✅ 완료한 데이트 · '+done.length+'개</div>'+done.map(row).join(''):'');
+    +(done.length?'<div class="isec">🤍 완료한 데이트 · '+done.length+'개</div>'+done.map(row).join(''):'');
 }
 async function addIdea(){
   const t=$('idea-title').value.trim();if(!t){toast('아이디어를 입력해 주세요');return;}
