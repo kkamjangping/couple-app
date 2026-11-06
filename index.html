@@ -2054,7 +2054,7 @@ function renderCal(){
   const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
   const today=toDateStr(new Date());
   const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
-  Object.keys(evByDay).forEach(k=>evByDay[k].sort((a,b)=>(a.ts||0)-(b.ts||0)));
+  Object.keys(evByDay).forEach(k=>evByDay[k].sort((a,b)=>((a.ord==null?1e15:a.ord)-(b.ord==null?1e15:b.ord))||((a.ts||0)-(b.ts||0))));
   const recByDay={};feedItems.forEach(r=>{(recByDay[r.date]=recByDay[r.date]||[]).push(r);});
   let annByDay={};
   if(coupleDoc&&coupleDoc.anniversary){
@@ -2124,12 +2124,32 @@ document.addEventListener('touchend',e=>{
     toast(dx<0?'다음 달 ›':'‹ 이전 달');
   }
 },{passive:true});
+function evSorted(list){return [...list].sort((a,b)=>((a.ord==null?1e15:a.ord)-(b.ord==null?1e15:b.ord))||((a.ts||0)-(b.ts||0)));}
+function moveEvent(id,dir){
+  const list=evSorted(events.filter(e=>e.date===selDate));
+  const i=list.findIndex(e=>e.id===id);
+  const j=i+dir;
+  if(i<0||j<0||j>=list.length)return;
+  const a=list[i],b=list[j];
+  const oa=a.ord==null?i:a.ord, ob=b.ord==null?j:b.ord;
+  const batch={};
+  batch[a.id]=ob;batch[b.id]=oa;
+  list.forEach((e,k)=>{if(e.id!==a.id&&e.id!==b.id&&e.ord==null)batch[e.id]=k;});
+  Object.entries(batch).forEach(([eid,ord])=>{
+    db.collection('couples').doc(coupleDoc.id).collection('events').doc(eid).update({ord}).catch(()=>{});
+  });
+  const lo=events.find(e=>e.id===a.id),hi=events.find(e=>e.id===b.id);
+  if(lo)lo.ord=batch[a.id];if(hi)hi.ord=batch[b.id];
+  list.forEach((e,k)=>{const l=events.find(x=>x.id===e.id);if(l&&l.ord==null)l.ord=k;});
+  renderDay();renderCal();
+}
 function renderDay(){
   if(!$('sel-title'))return;
   $('sel-title').textContent=fmtDate(selDate)+(selDate===toDateStr(new Date())?' · 오늘':'');
-  const list=events.filter(e=>e.date===selDate).sort((a,b)=>a.ts-b.ts);
+  const list=evSorted(events.filter(e=>e.date===selDate));
+  const updn=e=>'<button class="edel" style="font-size:10px;padding:5px 7px;'+(e.ord===list[0].ord&&list.filter(x=>x.ord==null).length<=1?'':'')+'" onclick="moveEvent(\''+e.id+'\',-1)">▲</button><button class="edel" style="font-size:10px;padding:5px 7px" onclick="moveEvent(\''+e.id+'\',1)">▼</button>';
   $('ev-list').innerHTML=list.length?list.map(e=>
-    '<div class="ev" id="ev-'+e.id+'"><span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div>'+'<button class="edel" onclick="editEvent(\''+e.id+'\')">수정</button><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
+    '<div class="ev" id="ev-'+e.id+'">'+(list.length>1?updn(e):'')+'<span class="eic">'+(e.createdBy===me.uid?'📌':'💗')+'</span><div class="etx"><b>'+esc(e.title)+'</b>'+(e.memo?'<span>'+esc(e.memo)+'</span>':'')+'<span style="font-size:11px">'+esc(e.creatorName||'')+'</span></div>'+'<button class="edel" onclick="editEvent(\''+e.id+'\')">수정</button><button class="edel" onclick="delEvent(\''+e.id+'\')">삭제</button></div>'
   ).join(''):'<p class="tiny">등록된 일정이 없어요. 아래에서 추가해보세요 📅</p>';
   // 그 날의 기록 (피드에서 날짜가 일치하는 것)
   const recs=feedItems.filter(r=>r.date===selDate).sort((a,b)=>b.ts-a.ts);
@@ -2355,8 +2375,10 @@ async function delIdea(id){
 async function addEvent(){
   const t=$('ev-title').value.trim();if(!t){toast('일정 제목을 입력해 주세요');return;}
   try{
+    const dayList=evSorted(events.filter(e=>e.date===selDate));
+    const mx=dayList.reduce((m,e)=>Math.max(m,e.ord==null?m:e.ord),dayList.length?Math.max(...dayList.map((e,i)=>e.ord==null?i:e.ord)):-1);
     await db.collection('couples').doc(coupleDoc.id).collection('events').add({
-      date:selDate,title:t,memo:'',createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now()
+      date:selDate,title:t,memo:'',createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now(),ord:mx+1
     });
     $('ev-title').value='';toast('일정을 추가했어요 📌');
   }catch(e){toast('추가 실패: '+(e.code||''));}
