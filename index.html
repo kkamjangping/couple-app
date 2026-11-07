@@ -823,30 +823,10 @@ button{white-space:nowrap!important}
         <h2 class="sec">🎮 게임랜드</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
           <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-omok" onclick="pickGame('omok')">⚫ 오목</button>
           <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
         </div>
       </div>
-      <div class="card" id="game-players">
-        <div style="display:flex;gap:10px;align-items:stretch">
-          <div style="flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 8px">
-            <div id="gp-ava" style="width:52px;height:52px;border-radius:50%;overflow:hidden;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:rgba(242,201,207,.25)"></div>
-            <div id="gp-name" style="font-size:13px;font-weight:800"></div>
-            <div style="font-family:'Pretendard Variable',Pretendard;font-size:18px;font-weight:900;color:#e5b3bd;margin-top:2px">Lv.<span id="gp-lv">1</span></div>
-            <div style="height:9px;background:#1d1a20;border-radius:6px;overflow:hidden;margin:5px 4px 3px"><div id="gp-xp" style="height:100%;width:0%;background:linear-gradient(90deg,#e5b3bd,#f2c9cf);border-radius:6px;transition:width .4s"></div></div>
-            <div id="gp-xp-tx" style="font-size:10.5px;color:var(--tx2)">승리 0 · XP 0</div>
-          </div>
-          <div style="display:flex;align-items:center;font-family:'Pretendard Variable',Pretendard;font-size:13px;font-weight:900;color:#e3c6a4">VS</div>
-          <div style="flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px 8px">
-            <div id="gp-pava" style="width:52px;height:52px;border-radius:50%;overflow:hidden;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:rgba(227,198,164,.18)"></div>
-            <div id="gp-pname" style="font-size:13px;font-weight:800"></div>
-            <div style="font-family:'Pretendard Variable',Pretendard;font-size:18px;font-weight:900;color:#e3c6a4;margin-top:2px">Lv.<span id="gp-plv">1</span></div>
-            <div style="height:9px;background:#1d1a20;border-radius:6px;overflow:hidden;margin:5px 4px 3px"><div id="gp-pxp" style="height:100%;width:0%;background:linear-gradient(90deg,#e6d3b4,#e3c6a4);border-radius:6px;transition:width .4s"></div></div>
-            <div id="gp-pxp-tx" style="font-size:10.5px;color:var(--tx2)">승리 0 · XP 0</div>
-          </div>
-        </div>
-        <div id="gp-rec" style="font-size:11.5px;color:var(--tx2);text-align:center;margin-top:8px"></div>
-      </div>
+      
       <div id="tama-wrap"><div class="card" id="tama-box">
         <h2 class="sec">🐾 우리 집 지푸라기</h2>
         <div style="text-align:center;padding:6px 0 2px">
@@ -868,18 +848,7 @@ button{white-space:nowrap!important}
         <div id="tama-snack-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
       </div>
       </div>
-      <div id="omok-wrap" style="display:none"><div class="card" id="omok-box">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <h2 class="sec" style="margin:0">⚫ 오목 <span style="font-size:12px;color:var(--tx2)">선:검은돌(혜연) · 백:유준</span></h2>
-          <button class="btn-sub" style="padding:7px 12px;font-size:12px" onclick="omokReset()">🔄 새 대국</button>
-        </div>
-        <div id="omok-status" style="font-size:14px;font-weight:700;margin-bottom:8px"></div>
-        <div style="background:#e9decd;border-radius:14px;padding:8px;overflow:auto">
-          <div id="omok-board" style="display:grid;grid-template-columns:repeat(15,1fr);gap:0;width:100%;max-width:430px;aspect-ratio:1;margin:0 auto;touch-action:manipulation"></div>
-        </div>
-        <div style="font-size:11.5px;color:var(--tx2);margin-top:8px">같은 커플방이면 두 폰에서 실시간 대국 · 한 줄 다섯 알이면 승리!</div>
-      </div>
-    </div>
+      
     </div>
           
       
@@ -1197,7 +1166,6 @@ function enterApp(coupleId){
   unsubs.push(evs.onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));renderCal();renderDay();updateBadges();},e=>console.error(e)));
   const ids=db.collection('couples').doc(coupleId).collection('ideas');
   unsubs.push(ids.onSnapshot(s=>{ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();updateBadges();},e=>console.error(e)));
-  unsubs.push(db.collection('couples').doc(coupleId).collection('games').orderBy('ts','desc').limit(6).onSnapshot(s=>{omokDoc=s.docs.map(d=>({id:d.id,...d.data()}));renderGameTab();},e=>console.error(e)));
   subscribeChat(coupleId);
   // 폼 초기값
   $('r-date').value=toDateStr(new Date());
@@ -1541,123 +1509,6 @@ function drawStageCat(){
 let catAnim=null;
 function startCatAnim(){const cv=$('tama-cat');if(!cv||catAnim)return;const loop=()=>{drawStageCat();catAnim=requestAnimationFrame(loop);};loop();}
 function stopCatAnim(){if(catAnim){cancelAnimationFrame(catAnim);catAnim=null;}}
-/* ═══════════════════════════ 게임랜드(오목) ═══════════════════════════ */
-let omokDoc=null;
-const OMOK_N=15;
-let curGame='tama';
-function pickGame(g){
-  curGame=g;
-  ['tama','omok'].forEach(k=>{
-    const b=$('gm-tab-'+k);if(b)b.classList.toggle('on',k===g);
-  });
-  ['tama','omok'].forEach(k=>{
-    const w=$(k+'-wrap');if(w)w.style.display=(g===k)?'block':'none';
-  });
-  if(g==='tama')renderTama();else renderOmok();
-  if($('game-players'))$('game-players').style.display='none';
-}
-function renderGameTab(){if($('pane-game')&&$('pane-game').classList.contains('on')){if(curGame==='omok'){renderOmok();renderGamePlayers();stopCatAnim();}else{renderTama();startCatAnim();}if($('game-players'))$('game-players').style.display=(curGame==='omok')?'':'none';}}
-// 게임 XP: 승리 5XP · 패배 1XP (레벨 필요XP = 10×Lv)
-function gpOf(uid){return (gameXp&&(gameXp[uid]||(gameXp[uid]={wins:0,losses:0}))); }
-function gpXpOf(s){return s.wins*5+s.losses*1;}
-function gpLvOf(xp){return Math.max(1,Math.floor(xp/10)+1);}
-async function gpGive(winnerUid,loserUid){
-  try{
-    const up={};
-    if(winnerUid)up['gp.'+winnerUid+'.wins']=firebase.firestore.FieldValue.increment(1);
-    if(loserUid)up['gp.'+loserUid+'.losses']=firebase.firestore.FieldValue.increment(1);
-    await db.collection('couples').doc(coupleDoc.id).set({gp:up},{merge:true});
-  }catch(e){console.error(e);}
-}
-let gameXp=null;
-function renderGamePlayers(){
-  if(!$('gp-lv')||!coupleDoc)return;
-  gameXp=coupleDoc.gp||{};
-  const s1=gpOf(me.uid),s2=gpOf(partnerUid||'__p');
-  const x1=gpXpOf(s1),x2=gpXpOf(s2);
-  const l1=gpLvOf(x1),l2=gpLvOf(x2);
-  const myAva=userDoc&&userDoc.avatarB64?'<img src="'+userDoc.avatarB64+'" style="width:100%;height:100%;object-fit:cover" alt="">':esc((me.displayName||'나')[0]);
-  const pAva=partnerDoc&&partnerDoc.avatarB64?'<img src="'+partnerDoc.avatarB64+'" style="width:100%;height:100%;object-fit:cover" alt="">':esc((partnerDoc?partnerDoc.nickname:'상대')[0]);
-  $('gp-ava').innerHTML=myAva;$('gp-pava').innerHTML=pAva;
-  $('gp-name').textContent=me.displayName||'나';
-  $('gp-pname').textContent=partnerDoc?partnerDoc.nickname||'상대':'상대';
-  $('gp-lv').textContent=l1;$('gp-plv').textContent=l2;
-  $('gp-xp').style.width=Math.min(100,(x1%10)*10)+'%';
-  $('gp-pxp').style.width=Math.min(100,(x2%10)*10)+'%';
-  $('gp-xp-tx').textContent='승리 '+s1.wins+' · XP '+x1;
-  $('gp-pxp-tx').textContent='승리 '+s2.wins+' · XP '+x2;
-  $('gp-rec').textContent='🏆 전적 '+s1.wins+'승 '+s1.losses+'패 vs '+s2.wins+'승 '+s2.losses+'패 · 승리 +5XP, 패배 +1XP (10XP마다 레벨업)';
-}
-function renderGameTab_old(){}
-function omokBoardOf(){if(!omokDoc||!omokDoc.length)return null;return omokDoc.find(x=>!x.winner)||omokDoc[0];}
-function omokReset(){
-  const d=omokBoardOf();
-  if(d&&!d.winner&&!confirm('진행 중인 대국을 버리고 새로 시작할까요?'))return;
-  db.collection('couples').doc(coupleDoc.id).collection('games').add({
-    type:'omok',moves:[],stone:{[me.uid]:'B',[partnerUid||'p2']:'W'},turn:'B',winner:null,ts:Date.now()
-  }).catch(e=>toast('실패: '+(e.code||'')));
-}
-function renderOmok(){
-  const box=$('omok-board');if(!box)return;
-  const d=omokBoardOf();
-  if(!d){$('omok-status').textContent='아직 대국이 없어요 — 🔄 새 대국 눌러 시작!';box.innerHTML='';return;}
-  const myColor=d.stone&&d.stone[me.uid];
-  $('omok-status').innerHTML=d.winner
-    ?('🏁 '+(d.winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리! 🎉 — 🔄 새 대국으로!')
-    :('차례: <b>'+omokNameOf(d.turn)+'</b>('+d.turn+') · 나는 '+(myColor||'관전')+' · '+d.moves.length+'수');
-  const cells=new Array(OMOK_N*OMOK_N).fill(0);
-  d.moves.forEach((m,i)=>{cells[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
-  const lastM=d.moves[d.moves.length-1];
-  let h='';
-  for(let r=0;r<OMOK_N;r++)for(let c=0;c<OMOK_N;c++){
-    const v=cells[r*OMOK_N+c];
-    const last=lastM&&lastM.r===r&&lastM.c===c;
-    h+='<div data-r="'+r+'" data-c="'+c+'" style="position:relative;aspect-ratio:1;border:0.5px solid rgba(0,0,0,.25);cursor:'+(v||d.winner?'default':'pointer')+'" onclick="omokPut('+r+','+c+')">'
-      +(v?'<div style="position:absolute;inset:8%;border-radius:50%;'+(v==='B'?'background:radial-gradient(circle at 35% 30%,#666,#000);':'background:radial-gradient(circle at 35% 30%,#fff,#cfcfcf);')+'box-shadow:0 1px 2px rgba(0,0,0,.4)'+(last?';outline:2px solid #f2c9cf;outline-offset:-2px':'')+'"></div>':'')
-      +'</div>';
-  }
-  box.innerHTML=h;
-}
-function omokNameOf(col){
-  const d=omokBoardOf()||{};
-  const uid=Object.keys(d.stone||{}).find(u=>d.stone[u]===col);
-  if(uid===me.uid)return me.displayName||'나';
-  if(uid===partnerUid)return partnerDoc?partnerDoc.nickname||'상대':'상대';
-  return col==='B'?'검은돌':'흰돌';
-}
-async function omokPut(r,c){
-  const d=omokBoardOf();if(!d||d.winner)return;
-  const myColor=d.stone&&d.stone[me.uid];
-  if(!myColor){toast('두 명의 돌이 이미 정해진 대국이에요 — 새 대국으로!');return;}
-  if(d.turn!==myColor){toast('상대 차례예요!');return;}
-  const cells=new Array(OMOK_N*OMOK_N).fill(0);
-  d.moves.forEach((m,i)=>{cells[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
-  if(cells[r*OMOK_N+c])return;
-  const moves=d.moves.concat([{r,c,uid:me.uid,ts:Date.now()}]);
-  const cells2=new Array(OMOK_N*OMOK_N).fill(0);
-  moves.forEach((m,i)=>{cells2[m.r*OMOK_N+m.c]=(i%2===0?'B':'W');});
-  const winner=omokWinner(cells2,r,c);
-  await db.collection('couples').doc(coupleDoc.id).collection('games').doc(d.id)
-    .update({moves,turn:d.turn==='B'?'W':'B',winner:winner||null});
-  if(winner){
-    const wUid=Object.keys(d.stone||{}).find(u=>d.stone[u]===winner);
-    const lUid=Object.keys(d.stone||{}).find(u=>d.stone[u]!==winner);
-    await gpGive(wUid,lUid);
-    toast('🎉 '+(winner==='B'?omokNameOf('B'):omokNameOf('W'))+' 승리! +5XP');
-  }
-}
-function omokWinner(cells,r,c){
-  const col=cells[r*OMOK_N+c];
-  if(!col)return null;
-  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
-  for(const[dr,dc]of dirs){
-    let n=1;
-    for(let k=1;k<5;k++){const rr=r+dr*k,cc=c+dc*k;if(rr<0||cc<0||rr>=OMOK_N||cc>=OMOK_N||cells[rr*OMOK_N+cc]!==col)break;n++;}
-    for(let k=1;k<5;k++){const rr=r-dr*k,cc=c-dc*k;if(rr<0||cc<0||rr>=OMOK_N||cc>=OMOK_N||cells[rr*OMOK_N+cc]!==col)break;n++;}
-    if(n>=5)return col;
-  }
-  return null;
-}
 /* ═══════════════════════════ 기록 ═══════════════════════════ */
 function collectPlaces(){
   const chips=[...document.querySelectorAll('#place-chips .mood')].map(el=>el.dataset.place).filter(Boolean);
