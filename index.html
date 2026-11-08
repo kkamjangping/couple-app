@@ -819,14 +819,6 @@ button{white-space:nowrap!important}
       </div>
     </div>
     <div id="pane-game" class="tabpane">
-      <div class="card">
-        <h2 class="sec">🎮 게임랜드</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700" id="gm-tab-tama" onclick="pickGame('tama')">🐾 다마고치</button>
-          <button class="btn-sub" style="padding:9px 16px;font-weight:700;opacity:.45" disabled>🎲 더 곧!</button>
-        </div>
-      </div>
-      
       <div id="tama-wrap"><div class="card" id="tama-box">
         <h2 class="sec">🐾 배부름이</h2>
         <div style="max-width:420px;margin:0 auto 6px;padding:0 10px">
@@ -1472,7 +1464,6 @@ function tamaRestore(){
     .catch(()=>toast('복구 실패: '+(e.code||'')));
 }
 function tamaIgnoreLost(){tamaLost=null;try{localStorage.setItem('pc-tama-bak',JSON.stringify({ts:Date.now(),tama:coupleDoc&&coupleDoc.tama||{}}));}catch(e){}renderTama();}
-function pickGame(){toast('🐾 지금은 배부름이 하나뿐이에요!');}
 function renderGameTab(){renderTama();startCatAnim();}
 function renderTama(){
   if(!$('tama-lv')||!coupleDoc)return;
