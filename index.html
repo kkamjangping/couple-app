@@ -1423,11 +1423,12 @@ async function tamaDelSnack(name){
   }catch(e){toast('실패: '+(e.code||''));}
 }
 async function tamaResetOnce(){
+  // v132: 기존 간식·XP가 있으면 절대 지우지 않고 resetv2 표시만 새로 찍음(자동 초기화 방지)
   try{
-    const st={feed:0,snacks:{},eaten:{},lastTs:Date.now(),resetv2:true};
+    const cur=coupleDoc.tama||{feed:0,snacks:{},eaten:{}};
+    const st=Object.assign({},cur,{resetv2:true});
     coupleDoc.tama=st;tamaState=st;
     await db.collection('couples').doc(coupleDoc.id).update({tama:st});
-    if($('pane-game')&&$('pane-game').classList.contains('on'))renderTama();
   }catch(e){}
 }
 function tamaCry(txt){
