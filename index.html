@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+<!-- couple-app v136 · 2026-11-08 · 배부름이 데이터 백업(내보내기) 추가 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -915,6 +916,14 @@ button{white-space:nowrap!important}
       </div>
       <div class="set-grp">
         <div class="card">
+          <h2 class="sec" style="margin:0 0 4px">🧳 데이터 백업</h2>
+          <p class="tiny" style="margin:0 0 10px">기록·사진·일정·아이디어·채팅·배부름이를 파일 하나로 내려받아요. 주기적으로 저장해 두면 마음이 편해요.</p>
+          <button class="btn btn-sub" id="bk-btn" onclick="exportBackup()">💾 백업 파일 내려받기</button>
+          <p class="tiny" style="margin:8px 0 0" id="bk-status"></p>
+        </div>
+      </div>
+      <div class="set-grp">
+        <div class="card">
           <button class="btn btn-ghost" style="margin-bottom:8px" onclick="doLogout()">로그아웃</button>
           <button class="btn btn-danger" onclick="unlinkCouple()">커플 연결 해제</button>
           <p class="tiny" style="margin-top:10px">사진은 업로드 시 자동 압축되어 저장돼요. 용량이 걱정될 땐 위 사용량을 확인하고 기존 사진을 정리해 주세요.</p>
@@ -1290,6 +1299,55 @@ function updateStorage(){
   else if(pct>=50){bar.style.background='linear-gradient(90deg,#e3c6a4,#ff8f5f)';hint.style.color='#8a6d2f';hint.textContent='저장공간이 절반을 넘었어요. 여유 있게 관리 중이에요.';}
   else{bar.style.background='linear-gradient(90deg,#e9cdd3,#e9cdd3)';hint.style.color='';hint.textContent='무료 저장공간 1GB ≒ 압축 사진 약 3,500장. 가까워지면 앨범에서 오래된 사진을 정리해 주세요.';}
 }
+
+/* ═══════════════════════════ 데이터 백업 (읽기 전용 · v136) ═══════════════════════════ */
+async function exportBackup(){
+  if(!coupleDoc){toast('커플 연결 후에 백업할 수 있어요');return;}
+  const btn=$('bk-btn');btn.disabled=true;const oldTxt=btn.textContent;btn.textContent='⏳ 백업 중… (사진 많으면 1분)';
+  try{
+    const cid=coupleDoc.id;
+    const grab=async(n)=>{const s=await db.collection('couples').doc(cid).collection(n).get();return s.docs.map(d=>Object.assign({id:d.id},d.data()));};
+    const recs=await grab('records');
+    const evs=await grab('events');
+    const ideas=await grab('ideas');
+    const phs=await grab('photos');
+    let chats=[];try{chats=await grab('chat');}catch(e){}
+    const uDocs={};
+    const grabU=async(uid)=>{try{const d=await db.collection('users').doc(uid).get();if(d.exists)uDocs[uid]=d.data();}catch(e){}};
+    if(me&&me.uid)await grabU(me.uid);
+    if(partnerUid&&partnerUid!==me.uid)await grabU(partnerUid);
+    const prefs={};
+    try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k==='couple_firebase_cfg'||k.indexOf('pc-')===0)prefs[k]=localStorage.getItem(k);}}catch(e){}
+    const cd={id:cid};for(const k in coupleDoc)if(k!=='id')cd[k]=coupleDoc[k];
+    const meta={app:'couple-app',schema:1,madeAt:new Date().toISOString(),coupleId:cid,
+      counts:{records:recs.length,events:evs.length,ideas:ideas.length,photos:phs.length,chat:chats.length}};
+    const J=o=>JSON.stringify(o);
+    const arr=a=>'['+a.map(J).join(',')+']';
+    const parts=['{"meta":'+J(meta)+',"data":{',
+      '"couple":'+J(cd)+',','"users":'+J(uDocs)+',',
+      '"records":'+arr(recs)+',','"events":'+arr(evs)+',',
+      '"ideas":'+arr(ideas)+',','"photos":'+arr(phs)+',',
+      '"chat":'+arr(chats)+',','"prefs":'+J(prefs)+'}}'];
+    const blob=new Blob(parts,{type:'application/json'});
+    const d=new Date(),p2=n=>(n<10?'0':'')+n;
+    const fname='couple-backup-'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'.json';
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    const stamp=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes());
+    try{localStorage.setItem('pc-last-backup',stamp+' · '+fmtSize(blob.size));}catch(e){}
+    renderBkStatus();
+    toast('백업 완료 💾 '+fname+' ('+fmtSize(blob.size)+')');
+  }catch(e){console.error(e);toast('백업 실패: '+((e&&e.code)||e.message||e));}
+  btn.disabled=false;btn.textContent=oldTxt;
+}
+function renderBkStatus(){
+  const el=$('bk-status');if(!el)return;
+  let s='';try{s=localStorage.getItem('pc-last-backup')||'';}catch(e){}
+  el.innerHTML=s?('마지막 백업: <b style="color:var(--pri-d)">'+s+'</b><br>파일은 브라우저 기본 다운로드 위치(또는 알림)로 내려와요. 클라우드·PC에 한 벌 더 두면 더 안전해요.')
+                :'아직 백업 전이에요. 파일 하나에 모든 데이터가 담깁니다.';
+}
+renderBkStatus();
 
 /* ═══════════════════════════ 기록 작성 토글 ═══════════════════════════ */
 function toggleCompose(){
