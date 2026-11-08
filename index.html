@@ -1153,6 +1153,7 @@ function enterApp(coupleId){
       toast('커플 연결이 해제됐어요');show('view-auth');return;
     }
     coupleDoc={id:doc.id,...doc.data()};
+    tamaMirrorTick();
     partnerUid=(coupleDoc.members||[]).find(x=>x!==me.uid)||null;
     if(coupleDoc.tama&&!coupleDoc.tama.resetv2)tamaResetOnce();
     renderHeader();
@@ -1445,6 +1446,29 @@ function tamaHearts(){
     setTimeout(()=>h.remove(),1500);
   },i*220);
 }
+let tamaLost=null;
+function tamaScore(t){return Object.keys(t.snacks||{}).length*10+Object.keys(t.eaten||{}).length+(t.feed||0);}
+function tamaMirrorTick(){
+  try{
+    const t=coupleDoc&&coupleDoc.tama;
+    if(!t)return;
+    const bak=JSON.parse(localStorage.getItem('pc-tama-bak')||'null');
+    const now=Date.now();
+    if(bak&&bak.tama&&now-(bak.ts||0)<72*3600e3){
+      const drop=tamaScore(t)<Math.max(2,tamaScore(bak.tama)*0.4)&&!t.resetv2;
+      if(drop){tamaLost={tama:bak.tama,ts:bak.ts};return;}
+    }
+    tamaLost=null;
+    localStorage.setItem('pc-tama-bak',JSON.stringify({ts:now,tama:t}));
+  }catch(e){}
+}
+function tamaRestore(){
+  if(!tamaLost)return;
+  db.collection('couples').doc(coupleDoc.id).update({tama:tamaLost.tama})
+    .then(()=>{toast('배부름이 세이브를 복구했어요 💾');tamaLost=null;})
+    .catch(()=>toast('복구 실패: '+(e.code||'')));
+}
+function tamaIgnoreLost(){tamaLost=null;try{localStorage.setItem('pc-tama-bak',JSON.stringify({ts:Date.now(),tama:coupleDoc&&coupleDoc.tama||{}}));}catch(e){}renderTama();}
 function renderTama(){
   if(!$('tama-lv')||!coupleDoc)return;
   tamaState=coupleDoc.tama||{feed:0,snacks:{},eaten:{}};
@@ -1456,7 +1480,8 @@ function renderTama(){
   const eaten=tamaState.eaten||{};
   const ks=Object.entries(tamaState.snacks||{}).sort((a,b)=>(eaten[a[0]]?1:0)-(eaten[b[0]]?1:0)||b[1]-a[1]);
   const ssty=n=>n===2?'color:#e5b3bd;font-weight:800;border:1px solid rgba(242,201,207,.5);':n>=3?'':'color:var(--tx);border:1px dashed rgba(255,255,255,.28);';
-  $('tama-snack-list').innerHTML=ks.length?ks.map(([k,n])=>'<span class="chip'+(n>=3?' lv3':'')+(eaten[k]?' eaten':'')+'" style="'+ssty(n)+'"><button class="sck'+(eaten[k]?' on':'')+'" title="먹음 표시" onclick="tamaToggleSnack(\''+esc(k)+'\')">✓</button>'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 2px" onclick="tamaRenameSnack(this.dataset.k)" data-k="'+esc(k)+'">✏️</button><button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 2px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>';
+  $('tama-snack-list').innerHTML=(tamaLost?'<div style="grid-column:1/-1;background:rgba(242,201,207,.1);border:1px solid rgba(242,201,207,.4);border-radius:12px;padding:9px 11px;margin:0 0 8px;font-size:12px;color:#f2c9cf;font-weight:700;line-height:1.5">📦 '+(new Date(tamaLost.ts).toLocaleDateString()+' '+(new Date(tamaLost.ts).getHours()>11?'오후':'오전')+' '+new Date(tamaLost.ts).getHours()%12+':'+String(new Date(tamaLost.ts).getMinutes()).padStart(2,'0'))+' 세이브가 있어요 — 데이터가 사라진 것 같아요<button class="btn-sub" style="padding:5px 10px;font-size:11px;margin-left:6px" onclick="tamaRestore()">복구</button><button class="btn-sub" style="padding:5px 10px;font-size:11px;margin-left:4px" onclick="tamaIgnoreLost()">무시</button></div>':'')
+    +(ks.length?ks.map(([k,n])=>'<span class="chip'+(n>=3?' lv3':'')+(eaten[k]?' eaten':'')+'" style="'+ssty(n)+'"><button class="sck'+(eaten[k]?' on':'')+'" title="먹음 표시" onclick="tamaToggleSnack(\''+esc(k)+'\')">✓</button>'+esc(k)+'<button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 2px" onclick="tamaRenameSnack(this.dataset.k)" data-k="'+esc(k)+'">✏️</button><button class="cdx" style="border:none;background:none;color:inherit;font-size:11px;cursor:pointer;opacity:.8;padding:0 0 0 2px" data-k="'+esc(k)+'" onclick="tamaDelSnack(this.dataset.k)">✕</button></span>').join(''):'<span style="font-size:11.5px;color:var(--tx2)">아직 간식이 없어요 — 좋아하는 간식을 입력해 주세요!</span>');
   tamaDrawIdle();
 }
 function tamaDrawIdle(){
