@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v148 · 2026-11-13 · 날짜 중앙 고정 + 일정 수 오른쪽 끝 정렬 -->
+<!-- couple-app v150 · 2026-11-13 · 아이디어 작성일 풀 포맷(연.월.일 오전/오후 시:분) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2236,7 +2236,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+(i.ts?' · '+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+' '+fmtTime(i.ts):'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
