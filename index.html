@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v141 · 2026-11-13 · 하트 크기 축소·높이 정렬 -->
+<!-- couple-app v142 · 2026-11-13 · 아이디어 입력칸 줄바꿈(엔터) + 500자 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -776,10 +776,10 @@ button{white-space:nowrap!important}
         <h2 class="sec" style="margin:0 0 4px">💡 데이트 아이디어</h2>
         <p class="tiny" style="margin:0 0 6px">하고 싶은 데이트를 미리 적어두고, 다녀오면 체크! 완료된 건 아래로 내려가요.</p>
         <div class="idea-add">
-          <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="120" onkeydown="if(event.key==='Enter')addIdea()">
+          <textarea id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="500" rows="2" style="flex:1;min-width:0;resize:vertical"></textarea>
           <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
         </div>
-        <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="300" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
+        <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="500" rows="2" style="margin-top:8px;width:100%;resize:vertical"></textarea>
         <div id="idea-list" style="margin-top:12px"></div>
       </div>
     </div>
@@ -2226,7 +2226,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span>'+esc(i.memo)+'</span>':'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span>'+esc(i.memo).replace(/\n/g,'<br>')+'</span>':'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
@@ -2257,8 +2257,8 @@ function editIdea(id){
   const i=ideas.find(x=>x.id===id);if(!i)return;
   const el=$('idea-'+id);if(!el)return;
   el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
-    +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="40" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
-    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="60" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
+    +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="500" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
+    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="500" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
     +'<div style="display:flex;gap:6px"><button class="cmt-save" onclick="saveIdea(\''+id+'\')">저장</button><button class="cmt-cancel" onclick="renderIdeas()">취소</button></div></div>';
   const inp=$('idea-in-'+id);if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
 }
