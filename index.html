@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v151 · 2026-11-13 · 작성일 라벨·연한색 + 수정일 표시 -->
+<!-- couple-app v153 · 2026-11-13 · 작성자 행 한 줄 유지(| 구분, 수정됨) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -272,7 +272,7 @@ h2.sec .em{font-size:18px}
 .idea.done .itx b{text-decoration:line-through;color:#d9a8b8}
 .idea .itx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
 .idea.done .itx span{text-decoration:line-through;color:#d4cdb8}
-.idea .iwho{font-size:11px;color:#d9a8b8;margin-top:2px;display:block}
+.idea .iwho{font-size:11px;color:#d9a8b8;margin-top:2px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idea .iwho .dt{color:var(--tx2);font-weight:500}
 .cel .d-head{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;line-height:1}
 .cel .d-cnt{position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9.5px;font-weight:800;color:var(--tx2)}
@@ -2238,7 +2238,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+(i.ts?'<span class="dt"> · 작성일 : '+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+' '+fmtTime(i.ts)+'</span>':'')+(i.editedTs?'<span class="dt"> · 수정일 : '+(new Date(i.editedTs)).getFullYear()+'.'+pad((new Date(i.editedTs)).getMonth()+1)+'.'+pad((new Date(i.editedTs)).getDate())+' '+fmtTime(i.editedTs)+'</span>':'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+(i.ts?'<span class="dt"> | 작성일 : '+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+' '+fmtTime(i.ts)+'</span>':'')+(i.editedTs?'<span class="dt"> | 수정됨</span>':'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
