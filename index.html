@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v142 · 2026-11-13 · 아이디어 입력칸 줄바꿈(엔터) + 500자 -->
+<!-- couple-app v143 · 2026-11-13 · 아이디어 입력 영역 박스 구분 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -775,12 +775,15 @@ button{white-space:nowrap!important}
       <div class="card">
         <h2 class="sec" style="margin:0 0 4px">💡 데이트 아이디어</h2>
         <p class="tiny" style="margin:0 0 6px">하고 싶은 데이트를 미리 적어두고, 다녀오면 체크! 완료된 건 아래로 내려가요.</p>
-        <div class="idea-add">
-          <textarea id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="500" rows="2" style="flex:1;min-width:0;resize:vertical"></textarea>
-          <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
+        <div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.28);border-radius:14px;padding:11px 12px 12px;margin-bottom:2px">
+          <div style="font-size:12px;font-weight:800;color:#e0b4bd;margin:0 0 8px">✍️ 새 아이디어 추가</div>
+          <div class="idea-add" style="margin-top:0">
+            <textarea id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="500" rows="2" style="flex:1;min-width:0;resize:vertical"></textarea>
+            <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
+          </div>
+          <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="500" rows="2" style="margin-top:8px;width:100%;resize:vertical"></textarea>
         </div>
-        <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="500" rows="2" style="margin-top:8px;width:100%;resize:vertical"></textarea>
-        <div id="idea-list" style="margin-top:12px"></div>
+        <div id="idea-list" style="margin-top:14px"></div>
       </div>
     </div>
     <div id="pane-game" class="tabpane">
