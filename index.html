@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v157 · 2026-11-13 · 메모 줄바꿈 표시 유지 -->
+<!-- couple-app v158 · 2026-11-13 · 메모 수정창 textarea화(줄바꿈 보존) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2277,7 +2277,7 @@ function editIdea(id){
   const el=$('idea-'+id);if(!el)return;
   el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
     +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="500" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
-    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="1000" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
+    +'<textarea id="idea-mm-'+id+'" maxlength="1000" placeholder="메모 (선택)" rows="4" style="padding:8px 10px;font-size:12.5px;width:100%;resize:vertical;box-sizing:border-box">'+esc(i.memo||'')+'</textarea>'
     +'<div style="display:flex;gap:6px"><button class="cmt-save" onclick="saveIdea(\''+id+'\')">저장</button><button class="cmt-cancel" onclick="renderIdeas()">취소</button></div></div>';
   const inp=$('idea-in-'+id);if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
 }
