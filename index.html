@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v158 · 2026-11-13 · 메모 수정창 textarea화(줄바꿈 보존) -->
+<!-- couple-app v160 · 2026-11-13 · 더보기 감지를 높이 비교 방식으로 교체(사파리 호환) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -278,7 +278,8 @@ h2.sec .em{font-size:18px}
 .cel .d-head{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;line-height:1}
 .cel .d-cnt{position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9.5px;font-weight:800;color:var(--tx2)}
 .idea .itx .imemo{display:block}
-.idea .itx .imemo:not(.exp){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.idea .itx .imemo:not(.exp){max-height:4.5em;overflow:hidden}
+.idea .itx .imemo-tx{display:block}
 .imore{display:block;background:none;border:none;color:#e5b3bd;font-size:11.5px;font-weight:800;cursor:pointer;padding:2px 0;margin:4px 0 3px;font-family:inherit;white-space:nowrap;text-align:left}
 .imore:hover{text-decoration:underline}
 .idea-add{display:flex;gap:8px;margin-top:12px}
@@ -2239,7 +2240,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+(i.memo.length>160?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+(i.ts?'<span class="dt">'+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+'</span> ':'')+esc(i.creatorName||'')+(i.editedTs?' <em class="edt">수정됨</em>':'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span class="imemo"><span class="imemo-tx">'+esc(i.memo).replace(/\n/g,'<br>')+'</span></span>':'')+'<span class="iwho">'+(i.ts?'<span class="dt">'+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+'</span> ':'')+esc(i.creatorName||'')+(i.editedTs?' <em class="edt">수정됨</em>':'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
@@ -2250,6 +2251,15 @@ function renderIdeas(){
     +(total===0?'<p class="tiny" style="margin:4px 0 8px">아직 아이디어가 없어요. 아래에서 추가해보세요 💡</p>':'')
     +(open.length?'<div class="isec">💖 하고 싶은 데이트 · '+open.length+'개</div>'+open.map(row).join(''):'')
     +(done.length?'<div class="isec">🤍 완료한 데이트 · '+done.length+'개</div>'+done.map(row).join(''):'');
+  box.querySelectorAll('.idea').forEach(card=>{
+    const s=card.querySelector('.imemo');if(!s||s.classList.contains('exp'))return;
+    const t=card.querySelector('.imemo-tx');if(!t)return;
+    if(t.offsetHeight>s.offsetHeight+2){
+      const b=document.createElement('button');b.className='imore';b.textContent='더보기';
+      b.addEventListener('click',()=>toggleMemo(card.id.slice(5)));
+      s.after(b);
+    }
+  });
 }
 async function addIdea(){
   const t=$('idea-title').value.trim();if(!t){toast('아이디어를 입력해 주세요');return;}
