@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v138 · 2026-11-08 · 간식 칩 체크박스 네모·간격 조정 -->
+<!-- couple-app v139 · 2026-11-13 · 달력 칸 4줄 + 아이디어 입력칸 상단 이동 + 글자수 확대 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -217,7 +217,7 @@ h2.sec .em{font-size:18px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
 .cal-grid .dow{font-size:12.5px;color:var(--tx2);font-weight:700;padding:6px 0}
 .dow.sun{color:#e3aeb8}.dow.sat{color:#7da1ff}
-.cal-grid{grid-auto-rows:92px}
+.cal-grid{grid-auto-rows:122px}
 .cel{
   height:100%;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:5px;justify-content:flex-start;
@@ -564,7 +564,7 @@ button{white-space:nowrap!important}
 .cal-grid{gap:4px;grid-auto-rows:auto}
 .cal-grid .dow{font-size:11px;font-weight:800;color:#a79fa6;padding:0 0 6px;letter-spacing:.5px;line-height:1}
 .dow.sun{color:#e3aeb8}.dow.sat{color:#9fb6ff}
-.cal-grid .cel{height:96px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:5px 3px 3px;transition:.15s}
+.cal-grid .cel{height:122px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:5px 3px 3px;transition:.15s}
 .cal-grid .cel:hover{background:rgba(242,201,207,.06);border-color:rgba(242,201,207,.28)}
 .cal-grid .cel.dim{background:transparent;border-color:transparent}
 .cal-grid .cel.today .n-date{font-weight:900;color:#e5b3bd}
@@ -788,12 +788,12 @@ button{white-space:nowrap!important}
       <div class="card">
         <h2 class="sec" style="margin:0 0 4px">💡 데이트 아이디어</h2>
         <p class="tiny" style="margin:0 0 6px">하고 싶은 데이트를 미리 적어두고, 다녀오면 체크! 완료된 건 아래로 내려가요.</p>
-        <div id="idea-list"></div>
         <div class="idea-add">
-          <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="40" onkeydown="if(event.key==='Enter')addIdea()">
+          <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="120" onkeydown="if(event.key==='Enter')addIdea()">
           <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
         </div>
-        <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="60" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
+        <input id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="300" style="margin-top:8px;width:100%" onkeydown="if(event.key==='Enter')addIdea()">
+        <div id="idea-list" style="margin-top:12px"></div>
       </div>
     </div>
     <div id="pane-game" class="tabpane">
