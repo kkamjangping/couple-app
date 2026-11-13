@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v144 · 2026-11-13 · 아이디어 제목 1줄 + 메모 1000자 + 더보기 접기 -->
+<!-- couple-app v146 · 2026-11-13 · 더보기 버튼: 줄바꿈 포함 시에도 표시 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -217,7 +217,7 @@ h2.sec .em{font-size:18px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
 .cal-grid .dow{font-size:12.5px;color:var(--tx2);font-weight:700;padding:6px 0}
 .dow.sun{color:#e3aeb8}.dow.sat{color:#7da1ff}
-.cal-grid{grid-auto-rows:122px}
+.cal-grid{grid-auto-rows:104px}
 .cel{
   height:100%;aspect-ratio:auto;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-size:13.5px;cursor:pointer;position:relative;font-weight:500;transition:.12s;padding-top:5px;justify-content:flex-start;
@@ -558,7 +558,7 @@ button{white-space:nowrap!important}
 .cal-grid{gap:4px;grid-auto-rows:auto}
 .cal-grid .dow{font-size:11px;font-weight:800;color:#a79fa6;padding:0 0 6px;letter-spacing:.5px;line-height:1}
 .dow.sun{color:#e3aeb8}.dow.sat{color:#9fb6ff}
-.cal-grid .cel{height:122px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:5px 3px 3px;transition:.15s}
+.cal-grid .cel{height:104px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:5px 3px 3px;transition:.15s}
 .cal-grid .cel:hover{background:rgba(242,201,207,.06);border-color:rgba(242,201,207,.28)}
 .cal-grid .cel.dim{background:transparent;border-color:transparent}
 .cal-grid .cel.today .n-date{font-weight:900;color:#e5b3bd}
@@ -754,7 +754,7 @@ button{white-space:nowrap!important}
       <div class="cal">
         <div class="cal-head">
           <button onclick="calMove(-1)">‹</button>
-          <b id="cal-title"></b>
+          <b id="cal-title"></b><span id="cal-cnt" style="font-size:10.5px;font-weight:600;color:var(--tx2);margin-left:5px"></span>
           <button onclick="calMove(1)">›</button>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
@@ -1965,6 +1965,9 @@ let chatSeen=+(localStorage.getItem('pc-chat-seen')||0);
 function calMove(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();renderDay();}
 function renderCal(){
   $('cal-title').textContent=calY+'년 '+(calM+1)+'월';
+  const ym=calY+'-'+String(calM+1).padStart(2,'0');
+  const mCnt=events.filter(e=>(e.date||'').slice(0,7)===ym).length;
+  const cc=$('cal-cnt');if(cc)cc.textContent=mCnt?('일정 '+mCnt+'개'):'';
   const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
   const today=toDateStr(new Date());
   const evByDay={};events.forEach(e=>{(evByDay[e.date]=evByDay[e.date]||[]).push(e);});
@@ -2003,7 +2006,7 @@ function renderCal(){
       }
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,7))+'</div>';
     }
-    evs.slice(0,4).forEach(e=>{
+    evs.slice(0,hasAnn?3:4).forEach(e=>{
       inner+='<div class="ev-lb">'+esc((e.title||'').slice(0,9))+'</div>';
     });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
@@ -2233,7 +2236,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+(i.memo.length>160?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
