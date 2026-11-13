@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v139 · 2026-11-13 · 달력 칸 4줄 + 아이디어 입력칸 상단 이동 + 글자수 확대 -->
+<!-- couple-app v140 · 2026-11-13 · 하트 확대·글자크기 통일 + 달력 점 표시 제거 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -225,7 +225,6 @@ h2.sec .em{font-size:18px}
 }
 .cel .num{line-height:1.1;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:17px}
 .cel .num .n-date{font-size:16px;line-height:17px;display:block}
-.cel .dots-row{flex:none;margin-top:2px}
 .cel .ann-lb,.cel .ev-lb{flex:none;max-width:98%;line-height:1.15}
 .cel.dim{color:#d5cbd0}
 .cel.today{color:var(--pri-d);font-weight:900}
@@ -234,13 +233,7 @@ h2.sec .em{font-size:18px}
 .cal-grid .cel.sel:not(.today){background:var(--pri)!important;color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .n-date,.cal-grid .cel.sel:not(.today) .num{color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .ev-lb{background:rgba(26,20,24,.16)!important;color:#1a1418!important}
-.cal-grid .cel.sel:not(.today) .dot{background:#1a1418!important}
 .cal-grid .cel.sel:not(.today).recday .n-date{background:rgba(26,20,24,.85)!important;color:#f2c9cf!important}
-.cal-grid .cel.sel:not(.today) .ann-dot{background:#8a6d4f!important}
-.cel .dot{width:6px;height:6px;border-radius:50%;background:var(--pri);margin-top:3px;color:#fff}
-.cel .ann-dot{
-  width:6px;height:6px;border-radius:50%;background:#ffb43f;margin-top:3px;
-}
 .cel .ann-lb{
   font-size:11.5px;font-weight:700;color:#d98a1f;line-height:1.3;margin-top:3px;letter-spacing:-0.3px;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;
@@ -250,9 +243,6 @@ h2.sec .em{font-size:18px}
   border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700;color:#ece2d6;
   margin-top:5px;cursor:pointer;backdrop-filter:blur(4px);
 }
-.cel .dots-row{display:flex;gap:3px;justify-content:center;margin-top:2px}
-.cel .dots-row .dot{margin-top:0;position:static}
-.cel .dots-row .dot.ann{background:#ffb43f}
 .cel .ann-lb{margin-top:0}
 .cel .ev-lb{
   font-size:8.5px;font-weight:700;color:var(--pri-d);line-height:1.3;margin-top:3px;letter-spacing:-0.3px;
@@ -571,10 +561,7 @@ button{white-space:nowrap!important}
 .cal-grid .cel.sel{border-color:rgba(242,201,207,.7);background:rgba(242,201,207,.09);box-shadow:0 0 0 1px rgba(242,201,207,.3),0 4px 14px rgba(242,201,207,.15)}
 .cal-grid .cel .num{width:100%;align-items:stretch;padding:0 2px}
 .cal-grid .cel .num .n-date{align-self:center;font-weight:700}
-.cal-grid .cel.recday .n-date{background:#f2c9cf;color:#1a1418;font-weight:900;text-shadow:none;line-height:15px!important;font-size:11px!important;clip-path:path("M10 17 C 3 11, 0 6.5, 2.2 3.2 C 4 0.6, 8 0.4, 10 3 C 12 0.4, 16 0.6, 17.8 3.2 C 20 6.5, 17 11, 10 17 Z");width:20px;border-radius:0;padding:0;margin:0 auto;line-height:17px;font-size:10.5px;text-align:center}
-.cal-grid .cel .dots-row{display:flex;justify-content:center;gap:3px;margin:2px 0;min-height:5px}
-.cal-grid .cel .dot{width:5px;height:5px;border-radius:999px;background:#e5b3bd;flex:none}
-.cal-grid .cel .dot.ann{background:#e3c6a4;width:6px;height:6px}
+.cal-grid .cel.recday .n-date{background:#f2c9cf;color:#1a1418;font-weight:900;text-shadow:none;clip-path:path("M14 23.8 C 4.2 15.4, 0 9.1, 3.08 4.48 C 5.6 0.84, 11.2 0.56, 14 4.2 C 16.8 0.56, 22.4 0.84, 24.92 4.48 C 28 9.1, 23.8 15.4, 14 23.8 Z");width:28px;border-radius:0;padding:0;margin:0 auto;line-height:23px;font-size:16px;text-align:center;flex:none}
 .cal-grid .cel .ann-lb{align-self:stretch;width:100%;background:rgba(227,198,164,.13);color:#e3c6a4;border:1px solid rgba(227,198,164,.4);border-radius:5px;font-size:9.5px;font-weight:800;padding:2px 4px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box;letter-spacing:-.2px}
 .cal-grid .cel .ev-lb{align-self:stretch;background:rgba(242,201,207,.17);color:#eec9d1;border-radius:5px;font-size:9.5px;font-weight:600;padding:2px 4px;margin-top:2px;line-height:1.35;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:clip;letter-spacing:-.2px}
 .cal-grid .cel.sel .ev-lb{background:rgba(242,201,207,.28)}
@@ -1992,14 +1979,8 @@ function renderCal(){
     const hasAnn=(annByDay[ds]||[]).length>0;
     let cls2=cls+(hasRec?' recday':'');
     let inner='<span class="n-date">'+d+'</span>';
-    // 순서: 점(기념일 주황+일정 수) → 기념일 → 일정1 → 일정2 (최대 4줄)
+    // 순서: 기념일 → 일정 라벨 (최대 4줄, v140: 점 표시 제거)
     const evs=evByDay[ds]||[];
-    if(hasEv||hasAnn){
-      let dots='';
-      if(hasAnn)dots+='<div class="dot ann"></div>';
-      for(let i=0;i<Math.min(evs.length,3);i++)dots+='<div class="dot"></div>';
-      inner+='<div class="dots-row">'+dots+'</div>';
-    }
     if(hasAnn){
       const a=annByDay[ds][0];
       let lbl=a.label;
@@ -2015,7 +1996,7 @@ function renderCal(){
       }
       inner+='<div class="ann-lb">'+esc(lbl.slice(0,7))+'</div>';
     }
-    evs.slice(0,hasAnn?3:4).forEach(e=>{
+    evs.slice(0,4).forEach(e=>{
       inner+='<div class="ev-lb">'+esc((e.title||'').slice(0,9))+'</div>';
     });
     html+='<div class="'+cls2+'" onclick="pickDay(\''+ds+'\')"><span class="num">'+inner+'</span></div>';
