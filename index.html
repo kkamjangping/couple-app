@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v155 · 2026-11-13 · 본문 줄바꿈 제거 + 날짜 선두 배치 + 수정됨 이탤릭 -->
+<!-- couple-app v156 · 2026-11-13 · 기존 메모 줄바꿈 공백 정리 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2239,7 +2239,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo)+'</span>'+((i.memo.length>160||i.memo.indexOf('\n')>-1)?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+(i.ts?'<span class="dt">'+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+'</span> ':'')+esc(i.creatorName||'')+(i.editedTs?' <em class="edt">수정됨</em>':'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title)+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,' ')+'</span>'+(i.memo.length>160?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+(i.ts?'<span class="dt">'+(new Date(i.ts)).getFullYear()+'.'+pad((new Date(i.ts)).getMonth()+1)+'.'+pad((new Date(i.ts)).getDate())+'</span> ':'')+esc(i.creatorName||'')+(i.editedTs?' <em class="edt">수정됨</em>':'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
@@ -2255,7 +2255,7 @@ async function addIdea(){
   const t=$('idea-title').value.trim();if(!t){toast('아이디어를 입력해 주세요');return;}
   try{
     await db.collection('couples').doc(coupleDoc.id).collection('ideas').add({
-      title:t,memo:$('idea-memo').value.trim(),done:false,createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now()
+      title:t,memo:$('idea-memo').value.replace(/\n/g,' ').trim(),done:false,createdBy:me.uid,creatorName:me.displayName||userDoc.nickname||'나',ts:Date.now()
     });
     $('idea-title').value='';$('idea-memo').value='';toast('아이디어를 추가했어요 💡');
   }catch(e){toast('추가 실패: '+(e.code||''));}
@@ -2284,7 +2284,7 @@ function editIdea(id){
 async function saveIdea(id){
   const t=$('idea-in-'+id).value.trim();if(!t){toast('내용을 입력해 주세요');return;}
   await db.collection('couples').doc(coupleDoc.id).collection('ideas').doc(id)
-    .update({title:t,memo:$('idea-mm-'+id).value.trim(),editedTs:Date.now()});
+    .update({title:t,memo:$('idea-mm-'+id).value.replace(/\n/g,' ').trim(),editedTs:Date.now()});
   toast('수정했어요 ✏️');
 }
 async function delIdea(id){
