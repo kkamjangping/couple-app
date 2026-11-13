@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v143 · 2026-11-13 · 아이디어 입력 영역 박스 구분 -->
+<!-- couple-app v144 · 2026-11-13 · 아이디어 제목 1줄 + 메모 1000자 + 더보기 접기 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -273,6 +273,10 @@ h2.sec .em{font-size:18px}
 .idea .itx span{display:block;font-size:12px;color:var(--tx2);margin-top:2px;line-height:1.5}
 .idea.done .itx span{text-decoration:line-through;color:#d4cdb8}
 .idea .iwho{font-size:11px;color:#d9a8b8;margin-top:2px;display:block}
+.idea .itx .imemo{display:block}
+.idea .itx .imemo:not(.exp){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.imore{background:none;border:none;color:#e5b3bd;font-size:11.5px;font-weight:800;cursor:pointer;padding:2px 0;font-family:inherit;white-space:nowrap;text-align:left}
+.imore:hover{text-decoration:underline}
 .idea-add{display:flex;gap:8px;margin-top:12px}
 /* ═══════════════════════════ 통계 ═══════════════════════════ */
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
@@ -778,10 +782,10 @@ button{white-space:nowrap!important}
         <div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.28);border-radius:14px;padding:11px 12px 12px;margin-bottom:2px">
           <div style="font-size:12px;font-weight:800;color:#e0b4bd;margin:0 0 8px">✍️ 새 아이디어 추가</div>
           <div class="idea-add" style="margin-top:0">
-            <textarea id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="500" rows="2" style="flex:1;min-width:0;resize:vertical"></textarea>
+            <input id="idea-title" placeholder="데이트 아이디어 · 예) 한강 자전거 타기" maxlength="500" style="flex:1;min-width:0">
             <button class="btn btn-pri" style="width:auto;padding:0 20px" onclick="addIdea()">추가</button>
           </div>
-          <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="500" rows="2" style="margin-top:8px;width:100%;resize:vertical"></textarea>
+          <textarea id="idea-memo" placeholder="메모 (선택) · 예) 대여소 미리 확인하기" maxlength="1000" rows="2" style="margin-top:8px;width:100%;resize:vertical"></textarea>
         </div>
         <div id="idea-list" style="margin-top:14px"></div>
       </div>
@@ -2229,7 +2233,7 @@ function renderIdeas(){
   const row=i=>
     '<div class="idea'+(i.done?' done':'')+'" id="idea-'+i.id+'">'
     +'<button class="ick'+(i.done?' on':'')+'" onclick="toggleIdea(\''+i.id+'\')">'+(i.done?'✓':'')+'</button>'
-    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span>'+esc(i.memo).replace(/\n/g,'<br>')+'</span>':'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
+    +'<div class="itx"><b>'+esc(i.title).replace(/\n/g,'<br>')+'</b>'+(i.memo?'<span class="imemo">'+esc(i.memo).replace(/\n/g,'<br>')+'</span>'+(i.memo.length>160?'<button class="imore" onclick="toggleMemo(\''+i.id+'\')">더보기</button>':''):'')+'<span class="iwho">'+esc(i.creatorName||'')+'</span></div>'
     +'<button class="edel" onclick="editIdea(\''+i.id+'\')">수정</button><button class="edel" onclick="delIdea(\''+i.id+'\')">삭제</button>'
     +'</div>';
   const prog='<div style="background:rgba(242,201,207,.07);border:1px solid rgba(242,201,207,.22);border-radius:14px;padding:11px 13px;margin:8px 0 12px">'
@@ -2250,6 +2254,12 @@ async function addIdea(){
     $('idea-title').value='';$('idea-memo').value='';toast('아이디어를 추가했어요 💡');
   }catch(e){toast('추가 실패: '+(e.code||''));}
 }
+function toggleMemo(id){
+  const card=$('idea-'+id);if(!card)return;
+  const s=card.querySelector('.imemo'),b=card.querySelector('.imore');
+  if(!s)return;const ex=s.classList.toggle('exp');
+  if(b)b.textContent=ex?'접기':'더보기';
+}
 async function toggleIdea(id){
   const i=ideas.find(x=>x.id===id);if(!i)return;
   await db.collection('couples').doc(coupleDoc.id).collection('ideas').doc(id)
@@ -2261,7 +2271,7 @@ function editIdea(id){
   const el=$('idea-'+id);if(!el)return;
   el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;gap:6px">'
     +'<input id="idea-in-'+id+'" value="'+esc(i.title).replace(/"/g,'&quot;')+'" maxlength="500" style="padding:8px 10px;font-size:14px" onkeydown="if(event.key===\'Enter\')saveIdea(\''+id+'\')">'
-    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="500" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
+    +'<input id="idea-mm-'+id+'" value="'+esc(i.memo||'').replace(/"/g,'&quot;')+'" maxlength="1000" placeholder="메모 (선택)" style="padding:8px 10px;font-size:12.5px">'
     +'<div style="display:flex;gap:6px"><button class="cmt-save" onclick="saveIdea(\''+id+'\')">저장</button><button class="cmt-cancel" onclick="renderIdeas()">취소</button></div></div>';
   const inp=$('idea-in-'+id);if(inp){inp.focus();const v=inp.value;inp.setSelectionRange(v.length,v.length);}
 }
