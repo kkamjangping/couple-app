@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v160 · 2026-11-13 · 더보기 감지를 높이 비교 방식으로 교체(사파리 호환) -->
+<!-- couple-app v162 · 2026-11-16 · 일정 수를 핑크 뱃지 숫자로 표시 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -230,6 +230,7 @@ h2.sec .em{font-size:18px}
 .cel.today{color:var(--pri-d);font-weight:900}
 .cel.recday{color:var(--pri);font-weight:700}
 .cel.sel{background:var(--pri);box-shadow:0 2px 10px rgba(242,201,207,.3);color:#1a1418;font-weight:900}
+.cal-grid .cel.sel .d-cnt{background:rgba(26,20,24,.75);color:#fff}
 .cal-grid .cel.sel:not(.today){background:var(--pri)!important;color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .n-date,.cal-grid .cel.sel:not(.today) .num{color:#1a1418!important}
 .cal-grid .cel.sel:not(.today) .ev-lb{background:rgba(26,20,24,.16)!important;color:#1a1418!important}
@@ -276,7 +277,7 @@ h2.sec .em{font-size:18px}
 .idea .itx span.dt{display:inline!important;color:var(--tx2)!important;font-weight:500!important}
 .idea .itx .edt{font-style:italic;color:var(--tx2)!important;font-weight:600!important;font-size:11px}
 .cel .d-head{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;line-height:1}
-.cel .d-cnt{position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:9.5px;font-weight:800;color:var(--tx2)}
+.cel .d-cnt{position:absolute;right:3px;top:5px;min-width:13px;height:13px;padding:0 3px;border-radius:999px;background:linear-gradient(135deg,#e5b3bd,#f2c9cf);color:#1a1418;font-size:9px;font-weight:900;line-height:13px;text-align:center;box-sizing:border-box}
 .idea .itx .imemo{display:block}
 .idea .itx .imemo:not(.exp){max-height:4.5em;overflow:hidden}
 .idea .itx .imemo-tx{display:block}
@@ -568,6 +569,8 @@ button{white-space:nowrap!important}
 .cal-grid .cel:hover{background:rgba(242,201,207,.06);border-color:rgba(242,201,207,.28)}
 .cal-grid .cel.dim{background:transparent;border-color:transparent}
 .cal-grid .cel.today .n-date{font-weight:900;color:#e5b3bd}
+.cal-grid .cel.today{border-color:rgba(242,201,207,.5)!important;background:rgba(242,201,207,.06)!important;box-shadow:0 0 0 1px rgba(242,201,207,.22)!important}
+.cal-grid .cel.red:not(.sel) .n-date{color:#e0716f}
 .cal-grid .cel.sel{border-color:rgba(242,201,207,.7);background:rgba(242,201,207,.09);box-shadow:0 0 0 1px rgba(242,201,207,.3),0 4px 14px rgba(242,201,207,.15)}
 .cal-grid .cel .num{width:100%;align-items:stretch;padding:0 2px}
 .cal-grid .cel .num .n-date{align-self:center;font-weight:700}
@@ -1969,6 +1972,7 @@ async function lbDelete(){
 let events=[],ideas=[],chats=[],pickedPlace=null,calY=new Date().getFullYear(),calM=new Date().getMonth(),selDate=toDateStr(new Date());
 let chatSeen=+(localStorage.getItem('pc-chat-seen')||0);
 function calMove(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();renderDay();}
+const HOLIDAYS={'2026-01-01':'신정','2026-02-16':'설날 연휴','2026-02-17':'설날','2026-02-18':'설날 연휴','2026-03-01':'3·1절','2026-03-02':'대체공휴일','2026-05-01':'노동절','2026-05-05':'어린이날','2026-05-24':'부처님 오신날','2026-05-25':'대체공휴일','2026-06-06':'현충일','2026-08-15':'광복절','2026-08-17':'대체공휴일','2026-09-24':'추석 연휴','2026-09-25':'추석','2026-09-26':'추석 연휴','2026-10-03':'개천절','2026-10-05':'대체공휴일','2026-10-09':'한글날','2026-12-25':'크리스마스','2027-01-01':'신정'};
 function renderCal(){
   $('cal-title').textContent=calY+'년 '+(calM+1)+'월';
   const first=new Date(calY,calM,1),off=first.getDay(),dim=new Date(calY,calM+1,0).getDate();
@@ -1990,7 +1994,7 @@ function renderCal(){
     const cls='cel'+(ds===today?' today':'')+(ds===selDate?' sel':'');
     const hasEv=(evByDay[ds]||[]).length>0, hasRec=(recByDay[ds]||[]).length>0;
     const hasAnn=(annByDay[ds]||[]).length>0;
-    let cls2=cls+(hasRec?' recday':'');
+    let cls2=cls+(hasRec?' recday':'')+((new Date(calY,calM,d).getDay()===0||HOLIDAYS[ds])?' red':'');
     const evCnt=(evByDay[ds]||[]).length;
     let inner='<div class="d-head"><span class="n-date">'+d+'</span>'+(evCnt?'<span class="d-cnt">'+evCnt+'</span>':'')+'</div>';
     // 순서: 기념일 → 일정 라벨 (최대 4줄, v140: 점 표시 제거)
