@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v162 · 2026-11-16 · 일정 수를 핑크 뱃지 숫자로 표시 -->
+<!-- couple-app v163 · 2026-11-17 · 일정 수 뱃지 축소·우상단 배치(날짜 가림 해소) -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -277,7 +277,8 @@ h2.sec .em{font-size:18px}
 .idea .itx span.dt{display:inline!important;color:var(--tx2)!important;font-weight:500!important}
 .idea .itx .edt{font-style:italic;color:var(--tx2)!important;font-weight:600!important;font-size:11px}
 .cel .d-head{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;line-height:1}
-.cel .d-cnt{position:absolute;right:3px;top:5px;min-width:13px;height:13px;padding:0 3px;border-radius:999px;background:linear-gradient(135deg,#e5b3bd,#f2c9cf);color:#1a1418;font-size:9px;font-weight:900;line-height:13px;text-align:center;box-sizing:border-box}
+.cel .d-cnt{position:absolute;right:2px;top:1px;min-width:11px;height:11px;padding:0 2px;border-radius:999px;background:linear-gradient(135deg,#e5b3bd,#f2c9cf);color:#1a1418;font-size:8px;font-weight:900;line-height:11px;text-align:center;box-sizing:border-box}
+@media (max-width:480px){.cel .d-cnt{min-width:10px;height:10px;padding:0 2px;font-size:7.5px;line-height:10px;right:1px;top:0}}
 .idea .itx .imemo{display:block}
 .idea .itx .imemo:not(.exp){max-height:4.5em;overflow:hidden}
 .idea .itx .imemo-tx{display:block}
