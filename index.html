@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v164 · 2026-11-17 · 좁은 화면 2자리 날짜-뱃지 겹침 해소(날짜 비켜나기 + 간격 축소) -->
+<!-- couple-app v165 · 2026-11-17 · 날짜 좌측 정렬 통일 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -276,9 +276,9 @@ h2.sec .em{font-size:18px}
 .idea .iwho{font-size:11px;color:#d9a8b8;margin-top:2px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idea .itx span.dt{display:inline!important;color:var(--tx2)!important;font-weight:500!important}
 .idea .itx .edt{font-style:italic;color:var(--tx2)!important;font-weight:600!important;font-size:11px}
-.cel .d-head{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;line-height:1}
+.cel .d-head{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:2px;line-height:1;padding-left:6px}
 .cel .d-cnt{position:absolute;right:2px;top:1px;min-width:11px;height:11px;padding:0 2px;border-radius:999px;background:linear-gradient(135deg,#e5b3bd,#f2c9cf);color:#1a1418;font-size:8px;font-weight:900;line-height:11px;text-align:center;box-sizing:border-box}
-@media (max-width:480px){.cel .d-cnt{min-width:10px;height:10px;padding:0 2px;font-size:7.5px;line-height:10px;right:1px;top:0}.cal-grid{gap:3px}.cel .d-head.has-cnt .n-date{transform:translateX(-6px)}}
+@media (max-width:480px){.cel .d-cnt{min-width:10px;height:10px;padding:0 2px;font-size:7.5px;line-height:10px;right:1px;top:0}.cal-grid{gap:3px}}
 .idea .itx .imemo{display:block}
 .idea .itx .imemo:not(.exp){max-height:4.5em;overflow:hidden}
 .idea .itx .imemo-tx{display:block}
