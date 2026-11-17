@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<!-- couple-app v167 · 2026-11-17 · 오늘 날짜 정렬 복구(가운데 정렬 경로 제거) + 죽은 코드 정리 -->
+<!-- couple-app v168 · 2026-11-18 · 설정에 실행 중 버전 표시 추가 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -880,6 +880,7 @@ button{white-space:nowrap!important}
           <div class="set-row"><span class="k">내 초대코드</span><span class="v code-chip" id="s-code"></span></div>
           <div class="set-row"><span class="k">파트너</span><span class="v" id="s-partner">-</span></div>
           <div class="set-row"><span class="k">로그인 계정</span><span class="v" id="s-email"></span></div>
+          <div class="set-row"><span class="k">앱 버전</span><span class="v" id="s-ver"></span></div>
         </div>
       </div>
       <div class="set-grp">
@@ -1035,6 +1036,7 @@ const CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function genCode(){let s='';for(let i=0;i<6;i++)s+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];return s;}
 
 /* ═══════════════════════════ 상태 ═══════════════════════════ */
+const APP_VER='v168';
 let me=null,userDoc=null,coupleDoc=null,partnerUid=null,partnerDoc=null;
 let unsubs=[];
 function detachAll(){watchersOn=false;subsOn=false;if(chatUnsub){try{chatUnsub()}catch(e){}chatUnsub=null;}if(photoUnsub){try{photoUnsub()}catch(e){}photoUnsub=null;}unsubs.forEach(u=>{try{u()}catch(e){}});unsubs=[];}
@@ -1323,6 +1325,7 @@ async function exportBackup(){
   btn.disabled=false;btn.textContent=oldTxt;
 }
 function renderBkStatus(){
+  try{$('s-ver').textContent=APP_VER;}catch(e){}
   const el=$('bk-status');if(!el)return;
   let s='';try{s=localStorage.getItem('pc-last-backup')||'';}catch(e){}
   el.innerHTML=s?('마지막 백업: <b style="color:var(--pri-d)">'+s+'</b><br>파일은 브라우저 기본 다운로드 위치(또는 알림)로 내려와요. 클라우드·PC에 한 벌 더 두면 더 안전해요.')
